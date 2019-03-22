@@ -1,0 +1,13 @@
+*.iml
+.gradle
+/local.properties
+/build
+.idea
+app/app-release.apk
+app/google-services.json
+app/libs/
+app/local.properties
+apprate/libs/
+apprate/src/main/res/drawable/
+google-services.json
+release
