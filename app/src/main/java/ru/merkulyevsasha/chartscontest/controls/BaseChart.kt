@@ -37,7 +37,7 @@ open class BaseChart @JvmOverloads constructor(
     internal var stopIndex: Int = 0
 
     internal val paints = mutableMapOf<String, Paint>()
-    internal val draw = mutableMapOf<String, Boolean>()
+    internal val yShouldVisible = mutableMapOf<Int, Boolean>()
 
     internal val chartLines = mutableListOf<ChartLine>()
 
@@ -71,22 +71,22 @@ open class BaseChart @JvmOverloads constructor(
 
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
-        maxY = chartData.getMaxYs()
-        minY = chartData.getMinYs()
-        maxX = chartData.getMaxInDays()
         minX = chartData.getMinInDays()
+        maxX = chartData.getMaxInDays()
+        minY = chartData.getMinYs()
+        maxY = chartData.getMaxYs()
 
         startIndex = 0
         stopIndex = chartData.xValuesInDays.size
 
         paints.clear()
-        for (ys in chartData.ys) {
+        chartData.ys.forEachIndexed { index, ys ->
             val paint = Paint(Paint.ANTI_ALIAS_FLAG)
             paint.style = Paint.Style.STROKE
             paint.color = ys.color
             paint.strokeWidth = CHART_STOKE_WIDTH
             paints.put(ys.name, paint)
-            draw.put(ys.name, true)
+            yShouldVisible.put(index, true)
         }
     }
 
@@ -135,41 +135,63 @@ open class BaseChart @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
-            var startX: Long = 0
-            val startY = mutableListOf<Long>()
-            for (index in startIndex until stopIndex) {
-                val xVal = chartData.xValuesInDays[index]
-                if (index == startIndex) {
-                    startX = xVal
-                    startY.clear()
-                    for (yVal in chartData.ys) {
-                        startY.add(yVal.yValues[index])
-                    }
-                } else {
-                    val x1 = (startX - minX) * xScale
-                    val x2 = (xVal - minX) * xScale
-
-                    val startY2 = mutableListOf<Long>()
-                    startY.forEachIndexed { index1, yVal1 ->
-                        val y1 = baseHeight - (yVal1 - minY) * yScale
-                        val y2 = baseHeight - (chartData.ys[index1].yValues[index] - minY) * yScale
-                        this.drawLine(x1, y1, x2, y2, paints[chartData.ys[index1].name]!!)
-                        startY2.add(chartData.ys[index1].yValues[index])
-                    }
-                    startX = xVal
-                    startY.clear()
-                    startY.addAll(startY2)
-                }
+            for (chartLine in chartLines) {
+                canvas.drawLine(chartLine.x1, chartLine.y1, chartLine.x2, chartLine.y2, chartLine.paint)
             }
         }
     }
 
-    internal fun getChartLines2(): List<ChartLine> {
+    internal fun getChartLines2(
+        startIndex: Int,
+        stopIndex: Int,
+        minX: Long,
+        maxX: Long,
+        minY: Long,
+        maxY: Long
+    ): List<ChartLine> {
+        val yScale = baseHeight / (maxY - minY).toFloat()
+        val xScale = baseWidth / (maxX - minX).toFloat()
+
         val result = mutableListOf<ChartLine>()
+        var startX: Long = 0
+        val startY = mutableListOf<Long>()
+        for (index in startIndex until stopIndex) {
+            val xVal = chartData.xValuesInDays[index]
+            if (index == startIndex) {
+                startX = xVal
+                startY.clear()
+                for (yVal in chartData.ys) {
+                    startY.add(yVal.yValues[index])
+                }
+            } else {
+                val x1 = (startX - minX) * xScale
+                val x2 = (xVal - minX) * xScale
+
+                val startY2 = mutableListOf<Long>()
+                startY.forEachIndexed { index1, yVal1 ->
+                    val y1 = baseHeight - (yVal1 - minY) * yScale
+                    val y2 = baseHeight - (chartData.ys[index1].yValues[index] - minY) * yScale
+                    val paint = paints[chartData.ys[index1].name]!!
+                    //canvas.drawLine(x1, y1, x2, y2, paint)
+                    result.add(ChartLine(index1, x1, y1, x2, y2, paint))
+                    startY2.add(chartData.ys[index1].yValues[index])
+                }
+                startX = xVal
+                startY.clear()
+                startY.addAll(startY2)
+            }
+        }
         return result
     }
 
-    data class ChartLine(val x1: Float, val y1: List<Float>, val x2: Float, val y2: List<Float>)
+    data class ChartLine(
+        val index: Int,
+        var x1: Float,
+        var y1: Float,
+        var x2: Float,
+        var y2: Float,
+        val paint: Paint
+    )
 
     companion object {
         const val ROWS = 6
@@ -179,6 +201,7 @@ open class BaseChart @JvmOverloads constructor(
         const val TOP_BOTTOM_BORDER_WIDTH = 3f
         const val CHART_STOKE_WIDTH = 3f
         const val TEXT_STROKE_WIDTH = 1f
+        const val ANIMATION_DURATION: Long = 500
     }
 
 }

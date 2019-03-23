@@ -16,7 +16,7 @@ class MainPresenter(private val sourceDataConverter: SourceDataConverter) {
     }
 
     fun dealWithIt(source: List<Example>) {
-        val example = source[Random().nextInt(5)]
+        val example = source[Random().nextInt(4)]
         val chartData = sourceDataConverter.getChartData(example)
         view?.showCharts(chartData)
     }

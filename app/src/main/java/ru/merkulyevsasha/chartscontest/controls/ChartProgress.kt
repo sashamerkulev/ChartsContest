@@ -20,6 +20,6 @@ class ChartProgress @JvmOverloads constructor(
         yScale = baseHeight / (maxY - minY).toFloat()
         xScale = baseWidth / (maxX - minX).toFloat()
         chartLines.clear()
-        chartLines.addAll(getChartLines2())
+        chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
     }
 }

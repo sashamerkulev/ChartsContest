@@ -72,9 +72,31 @@ class MainActivity : AppCompatActivity(), IMainView {
             )
             CompoundButtonCompat.setButtonTintList(view, ColorStateList(states, colors))
             view.setTextColor(ys.color)
-            view.setOnCheckedChangeListener { _, isChecked -> chart.onYDataSwitched(ys.name, isChecked) }
+            view.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    chart.onYDataSwitched(index, isChecked)
+                } else {
+                    if (isThereAtLeastOneChecked()) {
+                        chart.onYDataSwitched(index, isChecked)
+                    } else {
+                        view.isChecked = true
+                        val startIndex = chart.startIndex - 10
+                        val stopIndex = chart.stopIndex
+                        chart.onIndexesExpanded(startIndex, stopIndex)
+                    }
+                }
+            }
             container.addView(view)
         }
+    }
+
+    private fun isThereAtLeastOneChecked(): Boolean {
+        var result = false
+        for (index in 0 until container.childCount) {
+            val view = container.getChildAt(index) as CheckBox
+            result = result || view.isChecked
+        }
+        return result
     }
 
     private fun readSource(): String {
