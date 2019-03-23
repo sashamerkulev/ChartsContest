@@ -61,6 +61,11 @@ class Chart @JvmOverloads constructor(
     }
 
     fun onYDataSwitched(index: Int, isChecked: Boolean) {
+        if (animationInProgress.compareAndSet(true, false)) {
+            animatorSet?.cancel()
+            animatorSet = null
+        }
+
         yShouldVisible[index] = isChecked
 
         minY = getMinYAccordingToVisibility()
@@ -68,11 +73,6 @@ class Chart @JvmOverloads constructor(
         yScale = baseHeight / (maxY - minY).toFloat()
 
         val newChartLines = getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY)
-
-        if (animationInProgress.compareAndSet(true, false)) {
-            animatorSet?.cancel()
-            animatorSet = null
-        }
 
         if (animationInProgress.compareAndSet(false, true)) {
             animatorSet = AnimatorSet()
@@ -141,21 +141,20 @@ class Chart @JvmOverloads constructor(
         }
     }
 
-    fun onIndexesExpanded(newStartIndex: Int, newStopIndex: Int) {
-        chartLines.clear()
-        chartLines.addAll(getChartLines2(newStartIndex, newStopIndex, minX, maxX, minY, maxY))
-
-        maxX = chartData.xValuesInDays.subList(newStartIndex, newStopIndex).max()!!
-        minX = chartData.xValuesInDays.subList(newStartIndex, newStopIndex).min()!!
-        xScale = baseWidth / (maxX - minX).toFloat()
-
-
-        val newChartLines = getChartLines2(newStartIndex, newStopIndex, minX, maxX, minY, maxY)
-
+    fun onIndexesExpanded(newStartIndex: Int) {
         if (animationInProgress.compareAndSet(true, false)) {
             animatorSet?.cancel()
             animatorSet = null
         }
+
+        chartLines.clear()
+        chartLines.addAll(getChartLines2(newStartIndex, stopIndex, minX, maxX, minY, maxY))
+
+        maxX = chartData.xValuesInDays.subList(newStartIndex, stopIndex).max()!!
+        minX = chartData.xValuesInDays.subList(newStartIndex, stopIndex).min()!!
+        xScale = baseWidth / (maxX - minX).toFloat()
+
+        val newChartLines = getChartLines2(newStartIndex, stopIndex, minX, maxX, minY, maxY)
 
         if (animationInProgress.compareAndSet(false, true)) {
             animatorSet = AnimatorSet()
@@ -188,11 +187,11 @@ class Chart @JvmOverloads constructor(
                     }
 
                     override fun onAnimationEnd(animation: Animator?) {
-                        animationEnd(newStartIndex, newStopIndex, newChartLines)
+                        animationEnd(newStartIndex, stopIndex, newChartLines)
                     }
 
                     override fun onAnimationCancel(animation: Animator?) {
-                        animationEnd(newStartIndex, newStopIndex, newChartLines)
+                        animationEnd(newStartIndex, stopIndex, newChartLines)
                     }
 
                     override fun onAnimationStart(animation: Animator?) {

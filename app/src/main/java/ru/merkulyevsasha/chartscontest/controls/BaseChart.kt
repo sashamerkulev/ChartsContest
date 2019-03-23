@@ -197,7 +197,7 @@ open class BaseChart @JvmOverloads constructor(
         const val ROWS = 6
         const val COLUMNS = 5
         const val TEXT_SIZE_DP = 12
-        const val LEFT_RIGHT_BORDER_WIDTH = 20f
+        const val LEFT_RIGHT_BORDER_WIDTH = 30f
         const val TOP_BOTTOM_BORDER_WIDTH = 3f
         const val CHART_STOKE_WIDTH = 3f
         const val TEXT_STROKE_WIDTH = 1f

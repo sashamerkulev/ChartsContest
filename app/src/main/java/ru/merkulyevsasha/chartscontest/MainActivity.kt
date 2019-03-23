@@ -46,6 +46,13 @@ class MainActivity : AppCompatActivity(), IMainView {
         chart.setData(chartData)
         chartProgress.setData(chartData)
         slider.setData(chartData, object : OnActionIndicesChange {
+            override fun onActionStartIndexChanged(startIndex: Int) {
+                chart.onIndexesExpanded(startIndex)
+            }
+
+            override fun onActionStopIndexChanged(stopIndex: Int) {
+            }
+
             override fun onActionIndicesChanged(startIndex: Int, stopIndex: Int) {
                 runOnUiThread {
                     chart.onIndexesChanged(startIndex, stopIndex)
@@ -80,9 +87,6 @@ class MainActivity : AppCompatActivity(), IMainView {
                         chart.onYDataSwitched(index, isChecked)
                     } else {
                         view.isChecked = true
-                        val startIndex = chart.startIndex - 10
-                        val stopIndex = chart.stopIndex
-                        chart.onIndexesExpanded(startIndex, stopIndex)
                     }
                 }
             }
