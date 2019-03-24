@@ -22,14 +22,6 @@ data class ChartData(
     fun getMinYs(): Long {
         return ys.map { it.yValues.min()!! }.min()!!
     }
-
-    fun getMaxYAt(index: Int): Long {
-        return ys[index].yValues.max()!!
-    }
-
-    fun getMinYAt(index: Int): Long {
-        return ys[index].yValues.min()!!
-    }
 }
 
 data class YValue(

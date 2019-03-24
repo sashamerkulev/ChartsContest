@@ -8,6 +8,8 @@ import android.util.AttributeSet
 import android.view.View
 import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.YValue
+import java.util.*
 
 open class BaseChart @JvmOverloads constructor(
     context: Context,
@@ -173,7 +175,7 @@ open class BaseChart @JvmOverloads constructor(
                     val y2 = baseHeight - (chartData.ys[index1].yValues[index] - minY) * yScale
                     val paint = paints[chartData.ys[index1].name]!!
                     //canvas.drawLine(x1, y1, x2, y2, paint)
-                    result.add(ChartLine(index1, x1, y1, x2, y2, paint))
+                    result.add(ChartLine(index1, chartData.xValues[index], x1, y1, x2, y2, paint, index, chartData.ys))
                     startY2.add(chartData.ys[index1].yValues[index])
                 }
                 startX = xVal
@@ -184,13 +186,34 @@ open class BaseChart @JvmOverloads constructor(
         return result
     }
 
+    internal fun getMinYAccordingToVisibility(): Long {
+        var result: Long = Long.MAX_VALUE
+        for (index in 0 until chartData.ys.size) {
+            if (!yShouldVisible[index]!!) continue
+            result = Math.min(result, chartData.ys[index].yValues.min()!!)
+        }
+        return result
+    }
+
+    internal fun getMaxYAccordingToVisibility(): Long {
+        var result: Long = Long.MIN_VALUE
+        for (index in 0 until chartData.ys.size) {
+            if (!yShouldVisible[index]!!) continue
+            result = Math.max(result, chartData.ys[index].yValues.max()!!)
+        }
+        return result
+    }
+
     data class ChartLine(
         val index: Int,
+        val xValue: Date,
         var x1: Float,
         var y1: Float,
         var x2: Float,
         var y2: Float,
-        val paint: Paint
+        val paint: Paint,
+        val xIndex: Int,
+        val ys: List<YValue>
     )
 
     companion object {
@@ -202,6 +225,7 @@ open class BaseChart @JvmOverloads constructor(
         const val CHART_STOKE_WIDTH = 3f
         const val TEXT_STROKE_WIDTH = 1f
         const val ANIMATION_DURATION: Long = 500
+        const val MINIMAL_DISTANCE = 50
     }
 
 }

@@ -3,9 +3,7 @@ package ru.merkulyevsasha.chartscontest.controls
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.support.v4.view.GestureDetectorCompat
 import android.util.AttributeSet
-import android.view.GestureDetector
 import android.view.MotionEvent
 import ru.merkulyevsasha.chartscontest.models.ChartData
 
@@ -29,7 +27,7 @@ class Slider @JvmOverloads constructor(
 
     private lateinit var onActionIndicesChange: OnActionIndicesChange
 
-    private val gestureDetector = GestureDetectorCompat(getContext(), GestureListener())
+//    private val gestureDetector = GestureDetectorCompat(getContext(), GestureListener())
 
     fun setData(chartData: ChartData, onActionIndicesChange: OnActionIndicesChange) {
         super.setData(chartData)
@@ -179,44 +177,44 @@ class Slider @JvmOverloads constructor(
         stopIndex = parts
     }
 
-    inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
-
-        override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
-            //System.out.println(String.format("e1.x= %s - e2.x= %s - velocityX= %s", e1?.x, e2?.x, velocityX))
-            return true
-        }
-
-        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
-            System.out.println(
-                String.format(
-                    "e1.x= %s - e2.x= %s - distanceX= %s - delta=%s",
-                    e1?.x,
-                    e2?.x,
-                    distanceX,
-                    delta
-                )
-            )
-
-            e1?.let {
-                if (it.x in x1..x2) {
-                    if (distanceX > 0 /*&& Math.abs(distanceX) >= delta*/) {
-                        startIndex--
-                        stopIndex--
-                    }
-
-                    if (distanceX < 0 /*&& Math.abs(distanceX) >= delta*/) {
-                        startIndex++
-                        stopIndex++
-                    }
-
-                    if (startIndex < 0) initBeginIndices()
-                    if (stopIndex > chartData.xValuesInDays.size) initEndIndices()
-
-                    invalidate()
-                }
-            }
-            return true
-        }
-    }
+//    inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
+//
+//        override fun onFling(e1: MotionEvent?, e2: MotionEvent?, velocityX: Float, velocityY: Float): Boolean {
+//            //System.out.println(String.format("e1.x= %s - e2.x= %s - velocityX= %s", e1?.x, e2?.x, velocityX))
+//            return true
+//        }
+//
+//        override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
+//            System.out.println(
+//                String.format(
+//                    "e1.x= %s - e2.x= %s - distanceX= %s - delta=%s",
+//                    e1?.x,
+//                    e2?.x,
+//                    distanceX,
+//                    delta
+//                )
+//            )
+//
+//            e1?.let {
+//                if (it.x in x1..x2) {
+//                    if (distanceX > 0 /*&& Math.abs(distanceX) >= delta*/) {
+//                        startIndex--
+//                        stopIndex--
+//                    }
+//
+//                    if (distanceX < 0 /*&& Math.abs(distanceX) >= delta*/) {
+//                        startIndex++
+//                        stopIndex++
+//                    }
+//
+//                    if (startIndex < 0) initBeginIndices()
+//                    if (stopIndex > chartData.xValuesInDays.size) initEndIndices()
+//
+//                    invalidate()
+//                }
+//            }
+//            return true
+//        }
+//    }
 
 }

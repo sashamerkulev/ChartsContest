@@ -44,10 +44,14 @@ class MainActivity : AppCompatActivity(), IMainView {
 
     override fun showCharts(chartData: ChartData) {
         chart.setData(chartData)
+        chartLegend.setData(chartData)
         chartProgress.setData(chartData)
         slider.setData(chartData, object : OnActionIndicesChange {
             override fun onActionStartIndexChanged(startIndex: Int) {
-                chart.onIndexesExpanded(startIndex)
+                runOnUiThread {
+                    chart.onStartIndexChanged(startIndex)
+                    chartLegend.onStartIndexChanged(startIndex)
+                }
             }
 
             override fun onActionStopIndexChanged(stopIndex: Int) {
@@ -56,6 +60,7 @@ class MainActivity : AppCompatActivity(), IMainView {
             override fun onActionIndicesChanged(startIndex: Int, stopIndex: Int) {
                 runOnUiThread {
                     chart.onIndexesChanged(startIndex, stopIndex)
+                    chartLegend.onIndexesChanged(startIndex, stopIndex)
                 }
             }
         })
@@ -82,9 +87,11 @@ class MainActivity : AppCompatActivity(), IMainView {
             view.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     chart.onYDataSwitched(index, isChecked)
+                    chartLegend.onYDataSwitched(index, isChecked)
                 } else {
                     if (isThereAtLeastOneChecked()) {
                         chart.onYDataSwitched(index, isChecked)
+                        chartLegend.onYDataSwitched(index, isChecked)
                     } else {
                         view.isChecked = true
                     }

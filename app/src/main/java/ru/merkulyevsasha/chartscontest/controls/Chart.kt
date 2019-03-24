@@ -7,16 +7,17 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.util.AttributeSet
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
-class Chart @JvmOverloads constructor(
+open class Chart @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : BaseChart(context, attrs, defStyleAttr) {
+
+    internal val paintTextInfos = mutableListOf<PaintTextInfo>()
 
     private var heightRow: Float = 0f
     private var widthColumn: Float = 0f
@@ -25,9 +26,8 @@ class Chart @JvmOverloads constructor(
     private var stepInDays: Long = 0
 
     private val pattern = "dd MMM"
-    private val dateFormat: DateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+    private val dateFormat: SimpleDateFormat = SimpleDateFormat(pattern, Locale.getDefault())
 
-    private val paintTextInfos = mutableListOf<PaintTextInfo>()
     private var edgeTextWidth: Float = 0f
     private var heightTextPadding: Int = 20
 
@@ -141,7 +141,7 @@ class Chart @JvmOverloads constructor(
         }
     }
 
-    fun onIndexesExpanded(newStartIndex: Int) {
+    fun onStartIndexChanged(newStartIndex: Int) {
         if (animationInProgress.compareAndSet(true, false)) {
             animatorSet?.cancel()
             animatorSet = null
@@ -234,24 +234,6 @@ class Chart @JvmOverloads constructor(
         //invalidate()
     }
 
-    private fun getMinYAccordingToVisibility(): Long {
-        var result: Long = Long.MAX_VALUE
-        for (index in 0 until chartData.ys.size) {
-            if (!yShouldVisible[index]!!) continue
-            result = Math.min(result, chartData.ys[index].yValues.min()!!)
-        }
-        return result
-    }
-
-    private fun getMaxYAccordingToVisibility(): Long {
-        var result: Long = Long.MIN_VALUE
-        for (index in 0 until chartData.ys.size) {
-            if (!yShouldVisible[index]!!) continue
-            result = Math.max(result, chartData.ys[index].yValues.max()!!)
-        }
-        return result
-    }
-
     private fun drawXWithLegend(canvas: Canvas) {
         for (column in 0 until COLUMNS) {
             when (column) {
@@ -280,7 +262,8 @@ class Chart @JvmOverloads constructor(
     private fun drawYWithLegend(canvas: Canvas) {
         val step = (maxY - minY) / ROWS
         var yText = step
-        for (row in 0 until ROWS) {
+        canvas.drawText("0", 0f, baseHeight, textPaint)
+        for (row in 1 until ROWS) {
             val yRow = baseHeight - heightRow * row
             canvas.drawLine(
                 0f,
@@ -289,7 +272,6 @@ class Chart @JvmOverloads constructor(
                 yRow,
                 paintTopBottomBorder
             )
-
             canvas.drawText(reduction(yText + minY), 0f, yRow - 20, textPaint)
             yText += step
         }
@@ -299,15 +281,15 @@ class Chart @JvmOverloads constructor(
         var reductionValue = value
         if (value > 10000) {
             reductionValue -= value % 1000
-            return reductionValue.toString()
+            return (reductionValue + 1000).toString()
         }
         if (value > 1000) {
             reductionValue -= value % 100
-            return reductionValue.toString()
+            return (reductionValue + 100).toString()
         }
         if (value > 100) {
             reductionValue -= value % 10
-            return reductionValue.toString()
+            return (reductionValue + 10).toString()
         }
         return reductionValue.toString()
     }
