@@ -21,10 +21,8 @@ class Slider @JvmOverloads constructor(
     private var x2: Float = 0f
     private var y2: Float = 0f
     private var delta: Float = 0f
-    private var distanceLeftScrollX: Float = 0f
-    private var distanceRightScrollX: Float = 0f
-    private var distanceBorderLeftScrollX: Float = 0f
-    private var distanceBorderRightScrollX: Float = 0f
+    private var distanceScrollX: Float = 0f
+    private var distanceBorderScrollX: Float = 0f
 
     private var parts: Int = 30
 
@@ -81,19 +79,15 @@ class Slider @JvmOverloads constructor(
     private fun initEndIndices() {
         startIndex = chartData.xValues.size - parts
         stopIndex = chartData.xValues.size
-        distanceLeftScrollX = 0f
-        distanceRightScrollX = 0f
-        distanceBorderLeftScrollX = 0f
-        distanceBorderRightScrollX = 0f
+        distanceScrollX = 0f
+        distanceBorderScrollX = 0f
     }
 
     private fun initBeginIndices() {
         startIndex = 0
         stopIndex = parts
-        distanceLeftScrollX = 0f
-        distanceRightScrollX = 0f
-        distanceBorderLeftScrollX = 0f
-        distanceBorderRightScrollX = 0f
+        distanceScrollX = 0f
+        distanceBorderScrollX = 0f
     }
 
     inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
@@ -106,14 +100,13 @@ class Slider @JvmOverloads constructor(
             e1?.let { me1 ->
                 e2?.let { me2 ->
                     if ((e1.x in isSquare() || e2.x in isSquare()) && e1.y in y1..y2) {
-                        distanceLeftScrollX += distanceX
-                        distanceRightScrollX += distanceX
-                        if (distanceX > 0 && distanceLeftScrollX > delta / 2) {
-                            distanceLeftScrollX = 0f
+                        distanceScrollX += distanceX
+                        if (distanceX > 0 && distanceScrollX > delta / MAGIC) {
+                            distanceScrollX = 0f
                             startIndex--
                             stopIndex--
-                        } else if (distanceX < 0 && Math.abs(distanceRightScrollX) > delta / 2) {
-                            distanceRightScrollX = 0f
+                        } else if (distanceX < 0 && Math.abs(distanceScrollX) > delta / MAGIC) {
+                            distanceScrollX = 0f
                             startIndex++
                             stopIndex++
                         }
@@ -123,13 +116,12 @@ class Slider @JvmOverloads constructor(
                         invalidate()
                     }
                     if ((e1.x in isLeftBorderRange() || e2.x in isLeftBorderRange()) && e1.y in y1..y2) {
-                        distanceBorderLeftScrollX += distanceX
-                        distanceBorderRightScrollX += distanceX
-                        if (distanceX > 0 && distanceBorderLeftScrollX > delta / 2) {
-                            distanceBorderLeftScrollX = 0f
+                        distanceBorderScrollX += distanceX
+                        if (distanceX > 0 && distanceBorderScrollX > delta / MAGIC) {
+                            distanceBorderScrollX = 0f
                             startIndex -= 1
-                        } else if (distanceX < 0 && Math.abs(distanceBorderRightScrollX) > delta / 2) {
-                            distanceBorderRightScrollX = 0f
+                        } else if (distanceX < 0 && Math.abs(distanceBorderScrollX) > delta / MAGIC) {
+                            distanceBorderScrollX = 0f
                             startIndex += 1
                         }
                         if (startIndex < 0) initBeginIndices()
