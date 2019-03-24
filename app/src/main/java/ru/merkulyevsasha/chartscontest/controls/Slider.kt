@@ -81,11 +81,19 @@ class Slider @JvmOverloads constructor(
     private fun initEndIndices() {
         startIndex = chartData.xValues.size - parts
         stopIndex = chartData.xValues.size
+        distanceLeftScrollX = 0f
+        distanceRightScrollX = 0f
+        distanceBorderLeftScrollX = 0f
+        distanceBorderRightScrollX = 0f
     }
 
     private fun initBeginIndices() {
         startIndex = 0
         stopIndex = parts
+        distanceLeftScrollX = 0f
+        distanceRightScrollX = 0f
+        distanceBorderLeftScrollX = 0f
+        distanceBorderRightScrollX = 0f
     }
 
     inner class GestureListener : GestureDetector.SimpleOnGestureListener() {

@@ -20,15 +20,10 @@ open class Chart @JvmOverloads constructor(
     internal val paintTextInfos = mutableListOf<PaintTextInfo>()
 
     private var heightRow: Float = 0f
-    private var widthColumn: Float = 0f
-
-    private var startDate: Date = Date()
-    private var stepInDays: Long = 0
 
     private val pattern = "dd MMM"
     private val dateFormat: SimpleDateFormat = SimpleDateFormat(pattern, Locale.getDefault())
 
-    private var edgeTextWidth: Float = 0f
     private var heightTextPadding: Int = 20
 
     private val animationInProgress = AtomicBoolean(false)
@@ -38,24 +33,26 @@ open class Chart @JvmOverloads constructor(
         this.startIndex = startIndex
         this.stopIndex = stopIndex
 
-        startDate = chartData.xValues[startIndex]
+        val startDate = chartData.xValues[startIndex]
+        val stopDate = chartData.xValues[stopIndex - 1]
         val startDay = chartData.xValuesInDays[startIndex]
         val stopDay = chartData.xValuesInDays[stopIndex - 1]
 
-        stepInDays = (stopDay - startDay) / COLUMNS
+        val stepInDays = (stopDay - startDay) / COLUMNS
 
         paintTextInfos.clear()
         val calendar = Calendar.getInstance()
-        calendar.time = startDate
         for (column in 0 until COLUMNS) {
-            if (column > 0) calendar.add(Calendar.DAY_OF_YEAR, stepInDays.toInt())
+            if (column == 0) calendar.time = startDate
+            else if (column == COLUMNS - 1) calendar.time = stopDate
+            else if (column > 0) calendar.time = chartData.xValues[startIndex + column * stepInDays.toInt()]
+
             val text = dateFormat.format(calendar.time)
+
             val bounds = Rect()
             textPaint.getTextBounds(text, 0, text.length, bounds)
+
             paintTextInfos.add(PaintTextInfo(text, bounds))
-            if (column == 0 || column == COLUMNS - 1) {
-                edgeTextWidth += bounds.width()
-            }
         }
         invalidate()
     }
@@ -207,7 +204,6 @@ open class Chart @JvmOverloads constructor(
 
         yScale = baseHeight / (maxY - minY).toFloat()
         heightRow = baseHeight / ROWS.toFloat()
-        widthColumn = baseWidth / COLUMNS.toFloat()
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -235,6 +231,10 @@ open class Chart @JvmOverloads constructor(
     }
 
     private fun drawXWithLegend(canvas: Canvas) {
+
+        val leftWidth = baseWidth - paintTextInfos[0].bound.width() - paintTextInfos[COLUMNS - 1].bound.width()
+        val legendWidth = leftWidth / (COLUMNS - 1)
+
         for (column in 0 until COLUMNS) {
             when (column) {
                 COLUMNS - 1 -> canvas.drawText(
@@ -245,13 +245,13 @@ open class Chart @JvmOverloads constructor(
                 )
                 0 -> canvas.drawText(
                     paintTextInfos[column].text,
-                    widthColumn * column,
+                    0f,
                     height.toFloat() - heightTextPadding,
                     textPaint
                 )
                 else -> canvas.drawText(
                     paintTextInfos[column].text,
-                    widthColumn * column + (widthColumn / 2 - paintTextInfos[column].bound.width() / 2),
+                    legendWidth * column + (legendWidth / 2 - paintTextInfos[column].bound.width() / 2),
                     height.toFloat() - heightTextPadding,
                     textPaint
                 )

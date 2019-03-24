@@ -54,39 +54,39 @@ class ChartLegend @JvmOverloads constructor(
         paintTopBottomLine = Paint(Paint.ANTI_ALIAS_FLAG)
         paintTopBottomLine.style = Paint.Style.STROKE
         paintTopBottomLine.color = ContextCompat.getColor(context, R.color.border_transparent)
-        paintTopBottomLine.strokeWidth = 8f
+        paintTopBottomLine.strokeWidth = CIRCLE_CHART_STOKE_WIDTH
 
         paintCircle = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintCircle.strokeWidth = 8f
+        paintCircle.strokeWidth = CIRCLE_CHART_STOKE_WIDTH
         paintCircle.style = Paint.Style.STROKE
         paintCircle.color = ContextCompat.getColor(getContext(), R.color.border)
 
         paintFillCircle = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintFillCircle.strokeWidth = 8f
+        paintFillCircle.strokeWidth = CIRCLE_CHART_STOKE_WIDTH
         paintFillCircle.style = Paint.Style.FILL_AND_STROKE
         paintFillCircle.color = ContextCompat.getColor(getContext(), R.color.white)
 
         textBlackPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        textBlackPaint.strokeWidth = 3f
+        textBlackPaint.strokeWidth = CHART_STOKE_WIDTH
         textBlackPaint.style = Paint.Style.FILL_AND_STROKE
         textBlackPaint.color = ContextCompat.getColor(getContext(), R.color.black)
         textBlackPaint.textSize = TEXT_SIZE_DP * metrics.density
 
         textLegendPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        textLegendPaint.strokeWidth = 3f
+        textLegendPaint.strokeWidth = CHART_STOKE_WIDTH
         textLegendPaint.style = Paint.Style.FILL_AND_STROKE
         textLegendPaint.color = ContextCompat.getColor(getContext(), R.color.black)
         textLegendPaint.textSize = TEXT_SIZE_DP * metrics.density
 
         val cornerPathEffect10 = CornerPathEffect(10f)
         legendRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        legendRectPaint.strokeWidth = 5f
+        legendRectPaint.strokeWidth = LEGEND_RECT_STOKE_WIDTH
         legendRectPaint.style = Paint.Style.STROKE
         legendRectPaint.color = ContextCompat.getColor(getContext(), R.color.border)
         legendRectPaint.pathEffect = cornerPathEffect10
 
         legendFillRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        legendFillRectPaint.strokeWidth = 3f
+        legendFillRectPaint.strokeWidth = CHART_STOKE_WIDTH
         legendFillRectPaint.style = Paint.Style.FILL_AND_STROKE
         legendFillRectPaint.color = ContextCompat.getColor(getContext(), R.color.white)
         legendFillRectPaint.pathEffect = cornerPathEffect10
@@ -156,15 +156,16 @@ class ChartLegend @JvmOverloads constructor(
             if (!isShow) return
 
             nearestPoint?.let { point ->
-
+                // vertical line
                 this.drawLine(point.x, 0f, point.x, baseHeight, paintTopBottomLine)
 
+                // title of legend (date)
                 val textDate = dateFormat.format(point.xDate).capitalize()
                 textBlackPaint.getTextBounds(textDate, 0, textDate.length, bound)
 
+                // calculate of legend rect
                 var heightLegendBox = bound.height().toFloat() + pxLegendTextPaddingVertical * 2
                 var widthLegendBox = bound.width().toFloat() + pxLegendTextPaddingHorizontal * 2
-
                 for (index in 0 until point.ys.size) {
                     if (!yShouldVisible[index]!!) continue
                     val yValue = point.ys[index]
@@ -173,7 +174,7 @@ class ChartLegend @JvmOverloads constructor(
                     heightLegendBox += bound.height() + pxLegendTextPaddingVertical * 2
                     widthLegendBox = Math.max(widthLegendBox, bound.width() + pxLegendTextPaddingHorizontal * 2)
                 }
-
+                // calculate start position of legend rect
                 var leftX = point.x - widthLegendBox + pxLegendTextPaddingHorizontal
                 if (leftX + widthLegendBox > baseWidth) {
                     leftX = point.x - widthLegendBox - pxLegendTextPaddingHorizontal
@@ -181,7 +182,7 @@ class ChartLegend @JvmOverloads constructor(
                 if (leftX <= 0) {
                     leftX = pxLegendTextPaddingHorizontal
                 }
-
+                // draw circles
                 for (index in 0 until point.ys.size) {
                     if (!yShouldVisible[index]!!) continue
                     val yValue = point.ys[index]
@@ -192,12 +193,14 @@ class ChartLegend @JvmOverloads constructor(
                 }
 
                 var topX = 10f
+                // draw legend rect
                 this.drawRect(leftX, topX, leftX + widthLegendBox, topX + heightLegendBox, legendFillRectPaint)
                 this.drawRect(leftX, topX, leftX + widthLegendBox, topX + heightLegendBox, legendRectPaint)
                 topX += pxLegendTextPaddingVertical
                 textBlackPaint.getTextBounds(textDate, 0, textDate.length, bound)
                 this.drawText(textDate, leftX + pxLegendTextPaddingHorizontal, topX + bound.height(), textBlackPaint)
                 topX += bound.height()
+                // draw legend text according to yvalue
                 for (index in 0 until point.ys.size) {
                     if (!yShouldVisible[index]!!) continue
                     val yValue = point.ys[index]
