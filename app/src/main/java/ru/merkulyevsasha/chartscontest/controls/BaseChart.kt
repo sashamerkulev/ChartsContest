@@ -52,9 +52,9 @@ open class BaseChart @JvmOverloads constructor(
         paintTopBottomBorder.strokeWidth = TOP_BOTTOM_BORDER_WIDTH
 
         paintLeftRightBorder = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintLeftRightBorder.style = Paint.Style.STROKE
+        paintLeftRightBorder.style = Paint.Style.FILL
         paintLeftRightBorder.color = ContextCompat.getColor(context, R.color.border_transparent)
-        paintLeftRightBorder.strokeWidth = LEFT_RIGHT_BORDER_WIDTH
+        paintLeftRightBorder.strokeWidth = 0f
 
         textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         textPaint.strokeWidth = TEXT_STROKE_WIDTH
