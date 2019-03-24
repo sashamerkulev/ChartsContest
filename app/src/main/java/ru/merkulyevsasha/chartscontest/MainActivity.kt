@@ -94,6 +94,11 @@ class MainActivity : AppCompatActivity(), IMainView {
                         chartLegend.onYDataSwitched(index, isChecked)
                     } else {
                         view.isChecked = true
+                        var startIndex = chart.startIndex - 5
+                        if (startIndex < 0) startIndex = chartData.xValuesInDays.size / 3
+                        chart.onStartIndexChanged(startIndex)
+                        chartLegend.onStartIndexChanged(startIndex)
+
                     }
                 }
             }
