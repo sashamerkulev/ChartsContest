@@ -8,7 +8,9 @@ import android.widget.CheckBox
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_main.*
+import ru.merkulyevsasha.chartscontest.controls.BaseChart
 import ru.merkulyevsasha.chartscontest.controls.OnActionIndicesChange
+import ru.merkulyevsasha.chartscontest.controls.OnDataChange
 import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.sources.Example
 import java.io.BufferedReader
@@ -43,14 +45,25 @@ class MainActivity : AppCompatActivity(), IMainView {
     }
 
     override fun showCharts(chartData: ChartData) {
-        chart.setData(chartData)
-        chartLegend.setData(chartData)
+        chart.setData(chartData, object: OnDataChange{
+            override fun onDataChanged(
+                minX: Long,
+                minY: Long,
+                maxX: Long,
+                maxY: Long,
+                xScale: Float,
+                yScale: Float,
+                chartLines: List<BaseChart.ChartLine>,
+                yShouldVisible: Map<Int, Boolean>
+            ) {
+                chartLegend.onDataChanged(minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
+            }
+        })
         chartProgress.setData(chartData)
         slider.setData(chartData, object : OnActionIndicesChange {
             override fun onActionStartIndexChanged(startIndex: Int) {
                 runOnUiThread {
                     chart.onStartIndexChanged(startIndex)
-                    chartLegend.onStartIndexChanged(startIndex)
                 }
             }
 
@@ -60,7 +73,6 @@ class MainActivity : AppCompatActivity(), IMainView {
             override fun onActionIndicesChanged(startIndex: Int, stopIndex: Int) {
                 runOnUiThread {
                     chart.onIndexesChanged(startIndex, stopIndex)
-                    chartLegend.onIndexesChanged(startIndex, stopIndex)
                 }
             }
         })
@@ -87,18 +99,14 @@ class MainActivity : AppCompatActivity(), IMainView {
             view.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     chart.onYDataSwitched(index, isChecked)
-                    chartLegend.onYDataSwitched(index, isChecked)
                 } else {
                     if (isThereAtLeastOneChecked()) {
                         chart.onYDataSwitched(index, isChecked)
-                        chartLegend.onYDataSwitched(index, isChecked)
                     } else {
                         view.isChecked = true
                         var startIndex = chart.startIndex - 5
                         if (startIndex < 0) startIndex = chartData.xValuesInDays.size / 3
                         chart.onStartIndexChanged(startIndex)
-                        chartLegend.onStartIndexChanged(startIndex)
-
                     }
                 }
             }

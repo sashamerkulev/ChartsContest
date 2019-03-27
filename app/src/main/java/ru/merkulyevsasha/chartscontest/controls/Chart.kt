@@ -7,6 +7,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.util.AttributeSet
+import ru.merkulyevsasha.chartscontest.models.ChartData
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -28,6 +29,8 @@ open class Chart @JvmOverloads constructor(
 
     private val animationInProgress = AtomicBoolean(false)
     private var animatorSet: AnimatorSet? = null
+
+    private var onDataChange: OnDataChange? = null
 
     fun onIndexesChanged(startIndex: Int, stopIndex: Int) {
         this.startIndex = startIndex
@@ -70,6 +73,9 @@ open class Chart @JvmOverloads constructor(
         yScale = baseHeight / (maxY - minY).toFloat()
 
         val newChartLines = getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY)
+
+        onDataChange?.onDataChanged(minX, minY, maxX, maxY, xScale, yScale, newChartLines, yShouldVisible)
+
 
         if (animationInProgress.compareAndSet(false, true)) {
             animatorSet = AnimatorSet()
@@ -152,6 +158,7 @@ open class Chart @JvmOverloads constructor(
         xScale = baseWidth / (maxX - minX).toFloat()
 
         val newChartLines = getChartLines2(newStartIndex, stopIndex, minX, maxX, minY, maxY)
+        onDataChange?.onDataChanged(minX, minY, maxX, maxY, xScale, yScale, newChartLines, yShouldVisible)
 
         if (animationInProgress.compareAndSet(false, true)) {
             animatorSet = AnimatorSet()
@@ -199,6 +206,11 @@ open class Chart @JvmOverloads constructor(
         }
     }
 
+    fun setData(chartData: ChartData, onDataChange: OnDataChange) {
+        super.setData(chartData)
+        this.onDataChange = onDataChange
+    }
+
     override fun onMeasureEnd() {
         baseHeight -= 80
 
@@ -214,6 +226,7 @@ open class Chart @JvmOverloads constructor(
                 xScale = baseWidth / (maxX - minX).toFloat()
                 chartLines.clear()
                 chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
+                onDataChange?.onDataChanged(minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
             }
             drawYWithLegend(this)
             drawXWithLegend(this)

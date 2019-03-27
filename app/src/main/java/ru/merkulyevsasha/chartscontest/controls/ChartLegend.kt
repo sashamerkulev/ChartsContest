@@ -9,8 +9,8 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.view.View
 import ru.merkulyevsasha.chartscontest.R
-import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.models.YValue
 import java.text.SimpleDateFormat
 import java.util.*
@@ -20,7 +20,19 @@ class ChartLegend @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : BaseChart(context, attrs, defStyleAttr) {
+) : View(context, attrs, defStyleAttr) {
+
+    private var xScale: Float = 1f
+    private var yScale: Float = 1f
+    private var maxY: Long = 0
+    private var minY: Long = 0
+    private var maxX: Long = 0
+    private var minX: Long = 0
+    private var baseWidth: Float = 0f
+    private var baseHeight: Float = 0f
+
+    private val yShouldVisible = mutableMapOf<Int, Boolean>()
+    private val chartLines = mutableListOf<BaseChart.ChartLine>()
 
     private var isShow: Boolean = false
 
@@ -54,39 +66,39 @@ class ChartLegend @JvmOverloads constructor(
         paintTopBottomLine = Paint(Paint.ANTI_ALIAS_FLAG)
         paintTopBottomLine.style = Paint.Style.STROKE
         paintTopBottomLine.color = ContextCompat.getColor(context, R.color.border_transparent)
-        paintTopBottomLine.strokeWidth = CIRCLE_CHART_STOKE_WIDTH
+        paintTopBottomLine.strokeWidth = BaseChart.CIRCLE_CHART_STOKE_WIDTH
 
         paintCircle = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintCircle.strokeWidth = CIRCLE_CHART_STOKE_WIDTH
+        paintCircle.strokeWidth = BaseChart.CIRCLE_CHART_STOKE_WIDTH
         paintCircle.style = Paint.Style.STROKE
         paintCircle.color = ContextCompat.getColor(getContext(), R.color.border)
 
         paintFillCircle = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintFillCircle.strokeWidth = CIRCLE_CHART_STOKE_WIDTH
+        paintFillCircle.strokeWidth = BaseChart.CIRCLE_CHART_STOKE_WIDTH
         paintFillCircle.style = Paint.Style.FILL_AND_STROKE
         paintFillCircle.color = ContextCompat.getColor(getContext(), R.color.white)
 
         textBlackPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        textBlackPaint.strokeWidth = CHART_STOKE_WIDTH
+        textBlackPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         textBlackPaint.style = Paint.Style.FILL_AND_STROKE
         textBlackPaint.color = ContextCompat.getColor(getContext(), R.color.black)
-        textBlackPaint.textSize = TEXT_SIZE_DP * metrics.density
+        textBlackPaint.textSize = BaseChart.TEXT_SIZE_DP * metrics.density
 
         textLegendPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        textLegendPaint.strokeWidth = CHART_STOKE_WIDTH
+        textLegendPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         textLegendPaint.style = Paint.Style.FILL_AND_STROKE
         textLegendPaint.color = ContextCompat.getColor(getContext(), R.color.black)
-        textLegendPaint.textSize = TEXT_SIZE_DP * metrics.density
+        textLegendPaint.textSize = BaseChart.TEXT_SIZE_DP * metrics.density
 
         val cornerPathEffect10 = CornerPathEffect(10f)
         legendRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        legendRectPaint.strokeWidth = LEGEND_RECT_STOKE_WIDTH
+        legendRectPaint.strokeWidth = BaseChart.LEGEND_RECT_STOKE_WIDTH
         legendRectPaint.style = Paint.Style.STROKE
         legendRectPaint.color = ContextCompat.getColor(getContext(), R.color.border)
         legendRectPaint.pathEffect = cornerPathEffect10
 
         legendFillRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        legendFillRectPaint.strokeWidth = CHART_STOKE_WIDTH
+        legendFillRectPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         legendFillRectPaint.style = Paint.Style.FILL_AND_STROKE
         legendFillRectPaint.color = ContextCompat.getColor(getContext(), R.color.white)
         legendFillRectPaint.pathEffect = cornerPathEffect10
@@ -94,65 +106,65 @@ class ChartLegend @JvmOverloads constructor(
         pathCornerRect = Path()
     }
 
-    override fun setData(chartData: ChartData) {
-        super.setData(chartData)
-        invalidate()
-    }
-
-    fun onStartIndexChanged(startIndex: Int) {
-        this.startIndex = startIndex
-        maxX = chartData.xValuesInDays.subList(startIndex, stopIndex).max()!!
-        minX = chartData.xValuesInDays.subList(startIndex, stopIndex).min()!!
-        xScale = baseWidth / (maxX - minX).toFloat()
-
+    fun onDataChanged(
+        minX: Long, minY: Long, maxX: Long, maxY: Long,
+        xScale: Float, yScale: Float,
+        chartLines: List<BaseChart.ChartLine>, yShouldVisible : Map<Int, Boolean>) {
+        this.minX = minX
+        this.minY = minY
+        this.maxX = maxX
+        this.maxY = maxY
+        this.xScale = xScale
+        this.yScale = yScale
+        this.chartLines.clear()
+        this.chartLines.addAll(chartLines)
+        this.yShouldVisible.clear()
+        this.yShouldVisible.putAll(yShouldVisible)
         isShow = false
         invalidate()
-
-        chartLines.clear()
-        chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
     }
 
-    fun onIndexesChanged(startIndex: Int, stopIndex: Int) {
-        this.startIndex = startIndex
-        this.stopIndex = stopIndex
-        maxX = chartData.xValuesInDays.subList(startIndex, stopIndex).max()!!
-        minX = chartData.xValuesInDays.subList(startIndex, stopIndex).min()!!
-        xScale = baseWidth / (maxX - minX).toFloat()
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val desiredWidth = 100
+        val desiredHeight = 100
 
-        isShow = false
-        invalidate()
+        val widthMode = View.MeasureSpec.getMode(widthMeasureSpec)
+        val widthSize = View.MeasureSpec.getSize(widthMeasureSpec)
+        val heightMode = View.MeasureSpec.getMode(heightMeasureSpec)
+        val heightSize = View.MeasureSpec.getSize(heightMeasureSpec)
 
-        chartLines.clear()
-        chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
-    }
+        //Measure Width
+        if (widthMode == View.MeasureSpec.EXACTLY) {
+            //Must be this size
+            baseWidth = widthSize.toFloat()
+        } else if (widthMode == View.MeasureSpec.AT_MOST) {
+            //Can't be bigger than...
+            baseWidth = Math.min(desiredWidth, widthSize).toFloat()
+        } else {
+            //Be whatever you want
+            baseWidth = desiredWidth.toFloat()
+        }
 
-    fun onYDataSwitched(index: Int, isChecked: Boolean) {
-        yShouldVisible[index] = isChecked
+        //Measure Height
+        if (heightMode == View.MeasureSpec.EXACTLY) {
+            //Must be this size
+            baseHeight = heightSize.toFloat()
+        } else if (heightMode == View.MeasureSpec.AT_MOST) {
+            //Can't be bigger than...
+            baseHeight = Math.min(desiredHeight, heightSize).toFloat()
+        } else {
+            //Be whatever you want
+            baseHeight = desiredHeight.toFloat()
+        }
 
-        minY = getMinYAccordingToVisibility()
-        maxY = getMaxYAccordingToVisibility()
-        yScale = baseHeight / (maxY - minY).toFloat()
+        //MUST CALL THIS
+        setMeasuredDimension(baseWidth.toInt(), baseHeight.toInt())
 
-        isShow = false
-        invalidate()
-
-        chartLines.clear()
-        chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
-    }
-
-    override fun onMeasureEnd() {
         baseHeight -= 80
-        yScale = baseHeight / (maxY - minY).toFloat()
     }
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
-            maxX = chartData.xValuesInDays.subList(startIndex, stopIndex).max()!!
-            minX = chartData.xValuesInDays.subList(startIndex, stopIndex).min()!!
-            xScale = baseWidth / (maxX - minX).toFloat()
-            chartLines.clear()
-            chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
-
             if (!isShow) return
 
             nearestPoint?.let { point ->
@@ -255,8 +267,8 @@ class ChartLegend @JvmOverloads constructor(
                 )
             )
         }
-        val nearestX = distances.sortedBy { it.distanceX }.filter { it.distanceX < MINIMAL_DISTANCE }
-        return nearestX.sortedBy { it.distanceY }.firstOrNull { it.distanceY < MINIMAL_DISTANCE }
+        val nearestX = distances.sortedBy { it.distanceX }.filter { it.distanceX < BaseChart.MINIMAL_DISTANCE }
+        return nearestX.sortedBy { it.distanceY }.firstOrNull { it.distanceY < BaseChart.MINIMAL_DISTANCE }
     }
 
     inner class GestureListener : GestureDetector.SimpleOnGestureListener() {

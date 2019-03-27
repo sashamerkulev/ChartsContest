@@ -40,7 +40,6 @@ open class BaseChart @JvmOverloads constructor(
 
     internal val paints = mutableMapOf<String, Paint>()
     internal val yShouldVisible = mutableMapOf<Int, Boolean>()
-
     internal val chartLines = mutableListOf<ChartLine>()
 
     init {
