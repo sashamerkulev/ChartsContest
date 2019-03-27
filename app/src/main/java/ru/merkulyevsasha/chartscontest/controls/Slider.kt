@@ -102,31 +102,46 @@ class Slider @JvmOverloads constructor(
                     if ((e1.x in isSquare() || e2.x in isSquare()) && e1.y in y1..y2) {
                         distanceScrollX += distanceX
                         if (distanceX > 0 && distanceScrollX > delta / MAGIC) {
+                            startIndex -= Math.abs((distanceScrollX / (delta / MAGIC))).toInt()
+                            stopIndex -= Math.abs((distanceScrollX / (delta / MAGIC))).toInt()
                             distanceScrollX = 0f
-                            startIndex--
-                            stopIndex--
                         } else if (distanceX < 0 && Math.abs(distanceScrollX) > delta / MAGIC) {
+                            startIndex += Math.abs((distanceScrollX / (delta / MAGIC))).toInt()
+                            stopIndex += Math.abs((distanceScrollX / (delta / MAGIC))).toInt()
                             distanceScrollX = 0f
-                            startIndex++
-                            stopIndex++
                         }
-                        if (startIndex < 0) initBeginIndices()
-                        if (stopIndex > chartData.xValuesInDays.size) initEndIndices()
+                        if (startIndex < 0) {
+                            distanceScrollX = 0f
+                            initBeginIndices()
+                        }
+                        if (stopIndex > chartData.xValuesInDays.size) {
+                            distanceScrollX = 0f
+                            initEndIndices()
+                        }
                         onActionIndicesChange.onActionIndicesChanged(startIndex, stopIndex)
                         invalidate()
                     }
                     if ((e1.x in isLeftBorderRange() || e2.x in isLeftBorderRange()) && e1.y in y1..y2) {
                         distanceBorderScrollX += distanceX
                         if (distanceX > 0 && distanceBorderScrollX > delta / MAGIC) {
+                            startIndex -= Math.abs((distanceBorderScrollX / (delta / MAGIC))).toInt()
                             distanceBorderScrollX = 0f
-                            startIndex -= 1
                         } else if (distanceX < 0 && Math.abs(distanceBorderScrollX) > delta / MAGIC) {
+                            startIndex += Math.abs((distanceBorderScrollX / (delta / MAGIC))).toInt()
                             distanceBorderScrollX = 0f
-                            startIndex += 1
                         }
-                        if (startIndex < 0) initBeginIndices()
-                        if (stopIndex > chartData.xValuesInDays.size) initEndIndices()
-                        if (stopIndex - startIndex < parts) startIndex = stopIndex - parts
+                        if (startIndex < 0) {
+                            distanceBorderScrollX = 0f
+                            initBeginIndices()
+                        }
+                        if (stopIndex > chartData.xValuesInDays.size) {
+                            distanceBorderScrollX = 0f
+                            initEndIndices()
+                        }
+                        if (stopIndex - startIndex < parts) {
+                            distanceBorderScrollX = 0f
+                            startIndex = stopIndex - parts
+                        }
                         onActionIndicesChange.onActionStartIndexChanged(startIndex)
                         invalidate()
                     }

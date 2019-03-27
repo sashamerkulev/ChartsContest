@@ -227,7 +227,7 @@ open class BaseChart @JvmOverloads constructor(
         const val TEXT_STROKE_WIDTH = 1f
         const val ANIMATION_DURATION: Long = 500
         const val MINIMAL_DISTANCE = 50
-        const val MAGIC = 1.6f
+        const val MAGIC = 1.3f
     }
 
 }
