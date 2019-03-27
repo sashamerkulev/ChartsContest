@@ -36,6 +36,8 @@ open class Chart @JvmOverloads constructor(
         this.startIndex = startIndex
         this.stopIndex = stopIndex
 
+        updateIndexes()
+
         val startDate = chartData.xValues[startIndex]
         val stopDate = chartData.xValues[stopIndex - 1]
         val startDay = chartData.xValuesInDays[startIndex]
@@ -213,21 +215,23 @@ open class Chart @JvmOverloads constructor(
 
     override fun onMeasureEnd() {
         baseHeight -= 80
-
-        yScale = baseHeight / (maxY - minY).toFloat()
         heightRow = baseHeight / ROWS.toFloat()
+
+        updateIndexes()
+    }
+
+    private fun updateIndexes() {
+        maxX = chartData.xValuesInDays.subList(startIndex, stopIndex).max()!!
+        minX = chartData.xValuesInDays.subList(startIndex, stopIndex).min()!!
+        xScale = baseWidth / (maxX - minX).toFloat()
+        yScale = baseHeight / (maxY - minY).toFloat()
+        chartLines.clear()
+        chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
+        onDataChange?.onDataChanged(minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
     }
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
-            if (animationInProgress.compareAndSet(false, false)) {
-                maxX = chartData.xValuesInDays.subList(startIndex, stopIndex).max()!!
-                minX = chartData.xValuesInDays.subList(startIndex, stopIndex).min()!!
-                xScale = baseWidth / (maxX - minX).toFloat()
-                chartLines.clear()
-                chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
-                onDataChange?.onDataChanged(minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
-            }
             drawYWithLegend(this)
             drawXWithLegend(this)
             super.onDraw(this)

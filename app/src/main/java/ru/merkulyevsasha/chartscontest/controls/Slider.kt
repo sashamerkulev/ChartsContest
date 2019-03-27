@@ -21,6 +21,7 @@ class Slider @JvmOverloads constructor(
     private var x2: Float = 0f
     private var y2: Float = 0f
     private var delta: Float = 0f
+    private var deltaMagic: Float = 0f
     private var distanceScrollX: Float = 0f
     private var distanceBorderScrollX: Float = 0f
 
@@ -53,6 +54,7 @@ class Slider @JvmOverloads constructor(
             x1 = (xDays[startIndex] - minX) * xScale
             x2 = (xDays[stopIndex - 1] - minX) * xScale
             delta = (x2 - x1) / (stopIndex - startIndex)
+            deltaMagic = delta / MAGIC
 
             this.drawRect(x1, y1, x2, y2, paintWhiteBgr)
             this.drawRect(0f, 0f, x1, baseHeight, paintBgr)
@@ -101,13 +103,13 @@ class Slider @JvmOverloads constructor(
                 e2?.let { me2 ->
                     if ((e1.x in isSquare() || e2.x in isSquare()) && e1.y in y1..y2) {
                         distanceScrollX += distanceX
-                        if (distanceX > 0 && distanceScrollX > delta / MAGIC) {
-                            startIndex -= Math.abs((distanceScrollX / (delta / MAGIC))).toInt()
-                            stopIndex -= Math.abs((distanceScrollX / (delta / MAGIC))).toInt()
+                        if (distanceX > 0 && distanceScrollX > deltaMagic) {
+                            startIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
+                            stopIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
                             distanceScrollX = 0f
-                        } else if (distanceX < 0 && Math.abs(distanceScrollX) > delta / MAGIC) {
-                            startIndex += Math.abs((distanceScrollX / (delta / MAGIC))).toInt()
-                            stopIndex += Math.abs((distanceScrollX / (delta / MAGIC))).toInt()
+                        } else if (distanceX < 0 && Math.abs(distanceScrollX) > deltaMagic) {
+                            startIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
+                            stopIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
                             distanceScrollX = 0f
                         }
                         if (startIndex < 0) {
@@ -123,11 +125,11 @@ class Slider @JvmOverloads constructor(
                     }
                     if ((e1.x in isLeftBorderRange() || e2.x in isLeftBorderRange()) && e1.y in y1..y2) {
                         distanceBorderScrollX += distanceX
-                        if (distanceX > 0 && distanceBorderScrollX > delta / MAGIC) {
-                            startIndex -= Math.abs((distanceBorderScrollX / (delta / MAGIC))).toInt()
+                        if (distanceX > 0 && distanceBorderScrollX > deltaMagic) {
+                            startIndex -= Math.abs((distanceBorderScrollX / deltaMagic)).toInt()
                             distanceBorderScrollX = 0f
-                        } else if (distanceX < 0 && Math.abs(distanceBorderScrollX) > delta / MAGIC) {
-                            startIndex += Math.abs((distanceBorderScrollX / (delta / MAGIC))).toInt()
+                        } else if (distanceX < 0 && Math.abs(distanceBorderScrollX) > deltaMagic) {
+                            startIndex += Math.abs((distanceBorderScrollX / deltaMagic)).toInt()
                             distanceBorderScrollX = 0f
                         }
                         if (startIndex < 0) {
