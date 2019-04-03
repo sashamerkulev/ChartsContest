@@ -1,7 +1,7 @@
 package ru.merkulyevsasha.chartscontest
 
+import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.sources.Example
-import java.util.*
 
 class MainPresenter(private val sourceDataConverter: SourceDataConverter) {
 
@@ -16,9 +16,12 @@ class MainPresenter(private val sourceDataConverter: SourceDataConverter) {
     }
 
     fun dealWithIt(source: List<Example>) {
-        val example = source[Random().nextInt(5)]
-        val chartData = sourceDataConverter.getChartData(example)
-        view?.showCharts(chartData)
+        val result = mutableListOf<ChartData>()
+        for (example in source) {
+            val chartData = sourceDataConverter.getChartData(example)
+            result.add(chartData)
+        }
+        view?.showCharts(result)
     }
 
 }

@@ -70,6 +70,15 @@ class Slider @JvmOverloads constructor(
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                parent.requestDisallowInterceptTouchEvent(true)
+            }
+            MotionEvent.ACTION_CANCEL,
+            MotionEvent.ACTION_UP -> {
+                parent.requestDisallowInterceptTouchEvent(false)
+            }
+        }
         gestureDetector.onTouchEvent(event)
         return true
     }
