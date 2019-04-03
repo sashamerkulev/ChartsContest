@@ -31,7 +31,6 @@
                 android:id="@+id/chartProgress"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:background="@color/white"
                 android:layout_marginTop="8dp"
                 android:layout_below="@+id/chartLegend"
                 />

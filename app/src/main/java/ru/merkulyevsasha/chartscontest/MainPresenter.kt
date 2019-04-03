@@ -23,5 +23,4 @@ class MainPresenter(private val sourceDataConverter: SourceDataConverter) {
         }
         view?.showCharts(result)
     }
-
 }
