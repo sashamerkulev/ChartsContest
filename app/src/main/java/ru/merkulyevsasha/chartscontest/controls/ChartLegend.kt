@@ -94,9 +94,17 @@ class ChartLegend @JvmOverloads constructor(
     }
 
     fun onDataChanged(
-        minX: Long, minY: Long, maxX: Long, maxY: Long,
-        xScale: Float, yScale: Float,
-        chartLines: List<BaseChart.ChartLine>, yShouldVisible : Map<Int, Boolean>) {
+        startIndex: Int,
+        stopIndex: Int,
+        minX: Long,
+        minY: Long,
+        maxX: Long,
+        maxY: Long,
+        xScale: Float,
+        yScale: Float,
+        chartLines: List<BaseChart.ChartLine>,
+        yShouldVisible: Map<Int, Boolean>
+    ) {
         this.minX = minX
         this.minY = minY
         this.maxX = maxX
@@ -109,10 +117,6 @@ class ChartLegend @JvmOverloads constructor(
         this.yShouldVisible.putAll(yShouldVisible)
         isShow = false
         invalidate()
-    }
-
-    override fun onMeasureEnd() {
-        baseHeight -= 80
     }
 
     override fun onDraw(canvas: Canvas?) {

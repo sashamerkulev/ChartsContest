@@ -26,6 +26,8 @@ class ChartLayoutView @JvmOverloads constructor(
     fun setData(chartData: ChartData) {
         chart.setData(chartData, object : OnDataChange {
             override fun onDataChanged(
+                startIndex: Int,
+                stopIndex: Int,
                 minX: Long,
                 minY: Long,
                 maxX: Long,
@@ -35,9 +37,11 @@ class ChartLayoutView @JvmOverloads constructor(
                 chartLines: List<BaseChart.ChartLine>,
                 yShouldVisible: Map<Int, Boolean>
             ) {
-                chartLegend.onDataChanged(minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
+                chartLegend.onDataChanged(startIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
+                chartXLegend.onDataChanged(startIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
             }
         })
+        chartXLegend.setData(chartData)
         chartProgress.setData(chartData)
         slider.setData(chartData, object : OnActionIndicesChange {
             override fun onActionStartIndexChanged(startIndex: Int) {

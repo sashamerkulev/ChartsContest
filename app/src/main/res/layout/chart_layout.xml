@@ -16,31 +16,38 @@
         <ru.merkulyevsasha.chartscontest.controls.Chart
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="100dp"
                 android:layout_alignParentTop="true"
                 />
 
         <ru.merkulyevsasha.chartscontest.controls.ChartLegend
                 android:id="@+id/chartLegend"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="100dp"
                 android:layout_alignParentTop="true"
+                />
+
+        <ru.merkulyevsasha.chartscontest.controls.ChartXLegend
+                android:id="@+id/chartXLegend"
+                android:layout_width="match_parent"
+                android:layout_height="25dp"
+                android:layout_below="@+id/chartLegend"
                 />
 
         <ru.merkulyevsasha.chartscontest.controls.ChartProgress
                 android:id="@+id/chartProgress"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="8dp"
-                android:layout_below="@+id/chartLegend"
+                android:layout_height="40dp"
+                android:layout_marginTop="4dp"
+                android:layout_below="@+id/chartXLegend"
                 />
 
         <ru.merkulyevsasha.chartscontest.controls.Slider
                 android:id="@+id/slider"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:layout_marginTop="8dp"
-                android:layout_below="@+id/chartLegend"
+                android:layout_height="40dp"
+                android:layout_marginTop="4dp"
+                android:layout_below="@+id/chartXLegend"
                 />
 
         <LinearLayout
@@ -48,7 +55,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="4dp"
                 android:layout_below="@+id/slider"
                 />
 

@@ -6,12 +6,10 @@ interface OnActionIndicesChange {
     fun onActionStopIndexChanged(stopIndex: Int)
 }
 
-interface OnInterceptActivate {
-    fun OnInterceptActivate()
-}
-
 interface OnDataChange {
     fun onDataChanged(
+        startIndex: Int,
+        stopIndex: Int,
         minX: Long,
         minY: Long,
         maxX: Long,
