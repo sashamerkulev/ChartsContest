@@ -219,15 +219,15 @@ open class BaseChart @JvmOverloads constructor(
         const val ROWS = 6
         const val COLUMNS = 6
         const val TEXT_SIZE_DP = 12
-        const val LEFT_RIGHT_BORDER_WIDTH = 30f
+        const val LEFT_RIGHT_BORDER_WIDTH = 15f
         const val TOP_BOTTOM_BORDER_WIDTH = 3f
         const val CHART_STOKE_WIDTH = 3f
         const val CIRCLE_CHART_STOKE_WIDTH = 8f
         const val LEGEND_RECT_STOKE_WIDTH = 5f
         const val TEXT_STROKE_WIDTH = 1f
-        const val ANIMATION_DURATION: Long = 500
+        const val ANIMATION_DURATION: Long = 300
         const val MINIMAL_DISTANCE = 50
-        const val MAGIC = 1.3f
+        const val MAGIC = 1.1f
     }
 
 }

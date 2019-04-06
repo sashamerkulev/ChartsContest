@@ -45,6 +45,7 @@ class ChartLayoutView @JvmOverloads constructor(
             }
 
             override fun onActionStopIndexChanged(stopIndex: Int) {
+                chart.onStopIndexChanged(stopIndex)
             }
 
             override fun onActionIndicesChanged(startIndex: Int, stopIndex: Int) {

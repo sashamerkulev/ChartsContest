@@ -110,28 +110,6 @@ class Slider @JvmOverloads constructor(
         override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
             e1?.let { me1 ->
                 e2?.let { me2 ->
-                    if ((e1.x in isSquare() || e2.x in isSquare()) && e1.y in y1..y2) {
-                        distanceScrollX += distanceX
-                        if (distanceX > 0 && distanceScrollX > deltaMagic) {
-                            startIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
-                            stopIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
-                            distanceScrollX = 0f
-                        } else if (distanceX < 0 && Math.abs(distanceScrollX) > deltaMagic) {
-                            startIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
-                            stopIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
-                            distanceScrollX = 0f
-                        }
-                        if (startIndex < 0) {
-                            distanceScrollX = 0f
-                            initBeginIndices()
-                        }
-                        if (stopIndex > chartData.xValuesInDays.size) {
-                            distanceScrollX = 0f
-                            initEndIndices()
-                        }
-                        onActionIndicesChange.onActionIndicesChanged(startIndex, stopIndex)
-                        invalidate()
-                    }
                     if ((e1.x in isLeftBorderRange() || e2.x in isLeftBorderRange()) && e1.y in y1..y2) {
                         distanceBorderScrollX += distanceX
                         if (distanceX > 0 && distanceBorderScrollX > deltaMagic) {
@@ -147,13 +125,34 @@ class Slider @JvmOverloads constructor(
                         }
                         if (stopIndex > chartData.xValuesInDays.size) {
                             distanceBorderScrollX = 0f
-                            initEndIndices()
+                            stopIndex = chartData.xValuesInDays.size
                         }
-                        if (stopIndex - startIndex < parts) {
+                        if (startIndex < 0) {
                             distanceBorderScrollX = 0f
-                            startIndex = stopIndex - parts
+                            startIndex = 0
                         }
                         onActionIndicesChange.onActionStartIndexChanged(startIndex)
+                        invalidate()
+                    } else if ((e1.x in isSquare() || e2.x in isSquare()) && e1.y in y1..y2) {
+                        distanceScrollX += distanceX
+                        if (distanceX > 0 && distanceScrollX > deltaMagic) {
+                            startIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
+                            stopIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
+                            distanceScrollX = 0f
+                        } else if (distanceX < 0 && Math.abs(distanceScrollX) > deltaMagic) {
+                            startIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
+                            stopIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
+                            distanceScrollX = 0f
+                        }
+                        if (startIndex < 0) {
+                            distanceScrollX = 0f
+                            startIndex = 0
+                        }
+                        if (stopIndex > chartData.xValuesInDays.size) {
+                            distanceScrollX = 0f
+                            stopIndex = chartData.xValuesInDays.size
+                        }
+                        onActionIndicesChange.onActionIndicesChanged(startIndex, stopIndex)
                         invalidate()
                     }
                 }

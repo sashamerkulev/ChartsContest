@@ -9,7 +9,6 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
-import android.view.View
 import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.YValue
 import java.text.SimpleDateFormat
@@ -20,19 +19,7 @@ class ChartLegend @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : View(context, attrs, defStyleAttr) {
-
-    private var xScale: Float = 1f
-    private var yScale: Float = 1f
-    private var maxY: Long = 0
-    private var minY: Long = 0
-    private var maxX: Long = 0
-    private var minX: Long = 0
-    private var baseWidth: Float = 0f
-    private var baseHeight: Float = 0f
-
-    private val yShouldVisible = mutableMapOf<Int, Boolean>()
-    private val chartLines = mutableListOf<BaseChart.ChartLine>()
+) : BaseChart(context, attrs, defStyleAttr) {
 
     private var isShow: Boolean = false
 
@@ -124,42 +111,7 @@ class ChartLegend @JvmOverloads constructor(
         invalidate()
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val desiredWidth = 100
-        val desiredHeight = 100
-
-        val widthMode = View.MeasureSpec.getMode(widthMeasureSpec)
-        val widthSize = View.MeasureSpec.getSize(widthMeasureSpec)
-        val heightMode = View.MeasureSpec.getMode(heightMeasureSpec)
-        val heightSize = View.MeasureSpec.getSize(heightMeasureSpec)
-
-        //Measure Width
-        if (widthMode == View.MeasureSpec.EXACTLY) {
-            //Must be this size
-            baseWidth = widthSize.toFloat()
-        } else if (widthMode == View.MeasureSpec.AT_MOST) {
-            //Can't be bigger than...
-            baseWidth = Math.min(desiredWidth, widthSize).toFloat()
-        } else {
-            //Be whatever you want
-            baseWidth = desiredWidth.toFloat()
-        }
-
-        //Measure Height
-        if (heightMode == View.MeasureSpec.EXACTLY) {
-            //Must be this size
-            baseHeight = heightSize.toFloat()
-        } else if (heightMode == View.MeasureSpec.AT_MOST) {
-            //Can't be bigger than...
-            baseHeight = Math.min(desiredHeight, heightSize).toFloat()
-        } else {
-            //Be whatever you want
-            baseHeight = desiredHeight.toFloat()
-        }
-
-        //MUST CALL THIS
-        setMeasuredDimension(baseWidth.toInt(), baseHeight.toInt())
-
+    override fun onMeasureEnd() {
         baseHeight -= 80
     }
 
@@ -234,12 +186,7 @@ class ChartLegend @JvmOverloads constructor(
 
     private fun showLegend(x: Float, y: Float) {
         nearestPoint = findMinimalDistancePoint(x, y)
-        if (nearestPoint == null && isShow) {
-            isShow = false
-            invalidate()
-            return
-        }
-        isShow = true
+        isShow = nearestPoint != null
         invalidate()
     }
 

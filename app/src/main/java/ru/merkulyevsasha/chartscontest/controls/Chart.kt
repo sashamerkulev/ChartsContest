@@ -208,6 +208,9 @@ open class Chart @JvmOverloads constructor(
         }
     }
 
+    fun onStopIndexChanged(stopIndex: Int) {
+    }
+
     fun setData(chartData: ChartData, onDataChange: OnDataChange) {
         super.setData(chartData)
         this.onDataChange = onDataChange
@@ -305,6 +308,10 @@ open class Chart @JvmOverloads constructor(
             return (reductionValue + 100).toString()
         }
         if (value > 100) {
+            reductionValue -= value % 10
+            return (reductionValue + 10).toString()
+        }
+        if (value > 10) {
             reductionValue -= value % 10
             return (reductionValue + 10).toString()
         }
