@@ -5,11 +5,13 @@ import android.content.res.ColorStateList
 import android.support.v4.widget.CompoundButtonCompat
 import android.support.v7.widget.CardView
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.widget.CheckBox
 import kotlinx.android.synthetic.main.chart_layout.view.*
 import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.YValue
 
 
 class ChartLayoutView @JvmOverloads constructor(
@@ -37,8 +39,30 @@ class ChartLayoutView @JvmOverloads constructor(
                 chartLines: List<BaseChart.ChartLine>,
                 yShouldVisible: Map<Int, Boolean>
             ) {
-                chartLegend.onDataChanged(startIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
-                chartXLegend.onDataChanged(startIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
+                chartLegend.onDataChanged(
+                    startIndex,
+                    stopIndex,
+                    minX,
+                    minY,
+                    maxX,
+                    maxY,
+                    xScale,
+                    yScale,
+                    chartLines,
+                    yShouldVisible
+                )
+                chartXLegend.onDataChanged(
+                    startIndex,
+                    stopIndex,
+                    minX,
+                    minY,
+                    maxX,
+                    maxY,
+                    xScale,
+                    yScale,
+                    chartLines,
+                    yShouldVisible
+                )
             }
         })
         chartXLegend.setData(chartData)
@@ -59,23 +83,7 @@ class ChartLayoutView @JvmOverloads constructor(
         container.removeAllViews()
         for (index in 0 until chartData.ys.size) {
             val ys = chartData.ys[index]
-            val view = CheckBox(context)
-            view.text = ys.name
-            view.isChecked = true
-            val colors = intArrayOf(
-                ys.color,
-                ys.color,
-                ys.color,
-                ys.color
-            )
-            val states = arrayOf(
-                intArrayOf(android.R.attr.state_enabled), // enabled
-                intArrayOf(-android.R.attr.state_enabled), // disabled
-                intArrayOf(-android.R.attr.state_checked), // unchecked
-                intArrayOf(android.R.attr.state_pressed)  // pressed
-            )
-            CompoundButtonCompat.setButtonTintList(view, ColorStateList(states, colors))
-            view.setTextColor(ys.color)
+            val view = getCheckBox(ys)
             view.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) {
                     chart.onYDataSwitched(index, isChecked)
@@ -93,6 +101,28 @@ class ChartLayoutView @JvmOverloads constructor(
             container.addView(view)
             invalidate()
         }
+    }
+
+    private fun getCheckBox(ys: YValue): CheckBox {
+        val view = CheckBox(context)
+        view.text = ys.name
+        view.isChecked = true
+        view.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+        val colors = intArrayOf(
+            ys.color,
+            ys.color,
+            ys.color,
+            ys.color
+        )
+        val states = arrayOf(
+            intArrayOf(android.R.attr.state_enabled), // enabled
+            intArrayOf(-android.R.attr.state_enabled), // disabled
+            intArrayOf(-android.R.attr.state_checked), // unchecked
+            intArrayOf(android.R.attr.state_pressed)  // pressed
+        )
+        CompoundButtonCompat.setButtonTintList(view, ColorStateList(states, colors))
+        view.setTextColor(ys.color)
+        return view
     }
 
     private fun isThereAtLeastOneChecked(): Boolean {
