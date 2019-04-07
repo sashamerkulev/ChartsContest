@@ -23,13 +23,18 @@ class Slider @JvmOverloads constructor(
     private var delta: Float = 0f
     private var deltaMagic: Float = 0f
     private var distanceScrollX: Float = 0f
-    private var distanceBorderScrollX: Float = 0f
+    private var distanceLeftBorderScrollX: Float = 0f
+    private var distanceRightBorderScrollX: Float = 0f
 
     private var parts: Int = 30
 
     private lateinit var onActionIndicesChange: OnActionIndicesChange
 
     private val gestureDetector = GestureDetectorCompat(getContext(), GestureListener())
+
+    private var isLeftBorderMoving: Boolean = false
+    private var isRightBorderMoving: Boolean = false
+    private var isSquareMoving: Boolean = false
 
     fun setData(chartData: ChartData, onActionIndicesChange: OnActionIndicesChange) {
         super.setData(chartData)
@@ -77,6 +82,9 @@ class Slider @JvmOverloads constructor(
             MotionEvent.ACTION_CANCEL,
             MotionEvent.ACTION_UP -> {
                 parent.requestDisallowInterceptTouchEvent(false)
+                isLeftBorderMoving = false
+                isRightBorderMoving = false
+                isSquareMoving = false
             }
         }
         gestureDetector.onTouchEvent(event)
@@ -84,21 +92,14 @@ class Slider @JvmOverloads constructor(
     }
 
     private fun isSquare() = x1 + LEFT_RIGHT_BORDER_WIDTH..x2 - LEFT_RIGHT_BORDER_WIDTH
-    private fun isLeftBorderRange() = x1..x1 + LEFT_RIGHT_BORDER_WIDTH
-    private fun isRightBorderRange() = x2 - LEFT_RIGHT_BORDER_WIDTH..x2
+    private fun isLeftBorderRange() = x1 - 2 * LEFT_RIGHT_BORDER_WIDTH..x1 + 2 * LEFT_RIGHT_BORDER_WIDTH
+    private fun isRightBorderRange() = x2 - 2 * LEFT_RIGHT_BORDER_WIDTH..x2 + 2 * LEFT_RIGHT_BORDER_WIDTH
 
     private fun initEndIndices() {
         startIndex = chartData.xValues.size - parts
         stopIndex = chartData.xValues.size
         distanceScrollX = 0f
-        distanceBorderScrollX = 0f
-    }
-
-    private fun initBeginIndices() {
-        startIndex = 0
-        stopIndex = parts
-        distanceScrollX = 0f
-        distanceBorderScrollX = 0f
+        distanceLeftBorderScrollX = 0f
     }
 
     inner class GestureListener : GestureDetector.SimpleOnGestureListener() {
@@ -110,54 +111,84 @@ class Slider @JvmOverloads constructor(
         override fun onScroll(e1: MotionEvent?, e2: MotionEvent?, distanceX: Float, distanceY: Float): Boolean {
             e1?.let { me1 ->
                 e2?.let { me2 ->
-                    if ((e1.x in isLeftBorderRange() || e2.x in isLeftBorderRange()) && e1.y in y1..y2) {
-                        distanceBorderScrollX += distanceX
-                        if (distanceX > 0 && distanceBorderScrollX > deltaMagic) {
-                            startIndex -= Math.abs((distanceBorderScrollX / deltaMagic)).toInt()
-                            distanceBorderScrollX = 0f
-                        } else if (distanceX < 0 && Math.abs(distanceBorderScrollX) > deltaMagic) {
-                            startIndex += Math.abs((distanceBorderScrollX / deltaMagic)).toInt()
-                            distanceBorderScrollX = 0f
-                        }
-                        if (startIndex < 0) {
-                            distanceBorderScrollX = 0f
-                            initBeginIndices()
-                        }
-                        if (stopIndex > chartData.xValuesInDays.size) {
-                            distanceBorderScrollX = 0f
-                            stopIndex = chartData.xValuesInDays.size
-                        }
-                        if (startIndex < 0) {
-                            distanceBorderScrollX = 0f
-                            startIndex = 0
-                        }
-                        onActionIndicesChange.onActionStartIndexChanged(startIndex)
-                        invalidate()
-                    } else if ((e1.x in isSquare() || e2.x in isSquare()) && e1.y in y1..y2) {
-                        distanceScrollX += distanceX
-                        if (distanceX > 0 && distanceScrollX > deltaMagic) {
-                            startIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
-                            stopIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
-                            distanceScrollX = 0f
-                        } else if (distanceX < 0 && Math.abs(distanceScrollX) > deltaMagic) {
-                            startIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
-                            stopIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
-                            distanceScrollX = 0f
-                        }
-                        if (startIndex < 0) {
-                            distanceScrollX = 0f
-                            startIndex = 0
-                        }
-                        if (stopIndex > chartData.xValuesInDays.size) {
-                            distanceScrollX = 0f
-                            stopIndex = chartData.xValuesInDays.size
-                        }
-                        onActionIndicesChange.onActionIndicesChanged(startIndex, stopIndex)
-                        invalidate()
-                    }
+                    if (!isSquareMoving) leftBorderMoving(e1, e2, distanceX)
+                    if (!isSquareMoving) rightBorderMoving(e1, e2, distanceX)
+                    if (!isLeftBorderMoving && !isRightBorderMoving) squareMoving(e1, e2, distanceX)
                 }
             }
             return true
+        }
+
+        private fun squareMoving(e1: MotionEvent, e2: MotionEvent, distanceX: Float) {
+            if ((e1.x in isSquare() || e2.x in isSquare()) && (e1.y in y1..y2 || e2.y in y1..y2) || isSquareMoving) {
+                isSquareMoving = true
+                distanceScrollX += distanceX
+                if (distanceX > 0 && distanceScrollX > deltaMagic) {
+                    startIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
+                    stopIndex -= Math.abs((distanceScrollX / deltaMagic)).toInt()
+                    distanceScrollX = 0f
+                } else if (distanceX < 0 && Math.abs(distanceScrollX) > deltaMagic) {
+                    startIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
+                    stopIndex += Math.abs((distanceScrollX / deltaMagic)).toInt()
+                    distanceScrollX = 0f
+                }
+                if (startIndex < 0) {
+                    distanceScrollX = 0f
+                    startIndex = 0
+                }
+                if (stopIndex > chartData.xValuesInDays.size) {
+                    distanceScrollX = 0f
+                    stopIndex = chartData.xValuesInDays.size
+                }
+                onActionIndicesChange.onActionIndicesChanged(startIndex, stopIndex)
+                invalidate()
+            }
+        }
+
+        private fun leftBorderMoving(e1: MotionEvent, e2: MotionEvent, distanceX: Float) {
+            if ((e1.x in isLeftBorderRange() || e2.x in isLeftBorderRange()) && (e1.y in y1..y2 || e2.y in y1..y2) || isLeftBorderMoving) {
+                isLeftBorderMoving = true
+                distanceLeftBorderScrollX += distanceX
+                if (distanceX > 0 && distanceLeftBorderScrollX > deltaMagic) {
+                    startIndex -= Math.abs((distanceLeftBorderScrollX / deltaMagic)).toInt()
+                    distanceLeftBorderScrollX = 0f
+                } else if (distanceX < 0 && Math.abs(distanceLeftBorderScrollX) > deltaMagic) {
+                    startIndex += Math.abs((distanceLeftBorderScrollX / deltaMagic)).toInt()
+                    distanceLeftBorderScrollX = 0f
+                }
+                if (startIndex < 0) {
+                    distanceLeftBorderScrollX = 0f
+                    startIndex = 0
+                }
+                if (stopIndex - startIndex < parts) {
+                    startIndex = stopIndex - parts
+                }
+                onActionIndicesChange.onActionStartIndexChanged(startIndex)
+                invalidate()
+            }
+        }
+
+        private fun rightBorderMoving(e1: MotionEvent, e2: MotionEvent, distanceX: Float) {
+            if ((e1.x in isRightBorderRange() || e2.x in isRightBorderRange()) && (e1.y in y1..y2 || e2.y in y1..y2) || isRightBorderMoving) {
+                isRightBorderMoving = true
+                distanceRightBorderScrollX += distanceX
+                if (distanceX > 0 && distanceRightBorderScrollX > deltaMagic) {
+                    stopIndex -= Math.abs((distanceRightBorderScrollX / deltaMagic)).toInt()
+                    distanceRightBorderScrollX = 0f
+                } else if (distanceX < 0 && Math.abs(distanceRightBorderScrollX) > deltaMagic) {
+                    stopIndex += Math.abs((distanceRightBorderScrollX / deltaMagic)).toInt()
+                    distanceRightBorderScrollX = 0f
+                }
+                if (stopIndex > chartData.xValuesInDays.size) {
+                    distanceRightBorderScrollX = 0f
+                    stopIndex = chartData.xValuesInDays.size
+                }
+                if (stopIndex - startIndex < parts) {
+                    stopIndex = startIndex + parts
+                }
+                onActionIndicesChange.onActionStopIndexChanged(stopIndex)
+                invalidate()
+            }
         }
     }
 
