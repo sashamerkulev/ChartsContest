@@ -5,7 +5,6 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.app.AppCompatDelegate
 import android.view.Menu
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.merkulyevsasha.chartscontest.controls.ChartLayoutView
 import ru.merkulyevsasha.chartscontest.models.ChartData
@@ -34,10 +33,14 @@ class MainActivity : AppCompatActivity(), IMainView {
         charts.add(chart5)
 
         try {
-            val source = readSource()
-            val root = convertToObject(source)
+            val examples = mutableListOf<Example>()
+            for (index in 1..5) {
+                val source = readSource("contest/$index/overview.json")
+                val root = convertToObject(source)
+                examples.add(root)
+            }
             pres.onBind(this)
-            pres.dealWithIt(root)
+            pres.dealWithIt(examples)
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -86,8 +89,8 @@ class MainActivity : AppCompatActivity(), IMainView {
         }
     }
 
-    private fun readSource(): String {
-        val stream = assets.open("chart_data.json")
+    private fun readSource(name: String): String {
+        val stream = assets.open(name)
         val text = StringBuilder()
         val inputReader = InputStreamReader(stream)
         val buffReader = BufferedReader(inputReader)
@@ -98,11 +101,16 @@ class MainActivity : AppCompatActivity(), IMainView {
         return text.toString()
     }
 
-    private fun convertToObject(json: String): List<Example> {
+    private fun convertToObject(json: String): Example {
         val gson = Gson()
-        val listType = object : TypeToken<List<Example>>() {}.type
-        val data: List<Example> = gson.fromJson(json, listType)
-        return data
+        return gson.fromJson(json, Example::class.java)
     }
+
+//    private fun convertToObject(json: String): List<Example> {
+//        val gson = Gson()
+//        val listType = object : TypeToken<List<Example>>() {}.type
+//        val data: List<Example> = gson.fromJson(json, listType)
+//        return data
+//    }
 
 }
