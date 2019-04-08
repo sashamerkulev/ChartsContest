@@ -3,10 +3,14 @@ package ru.merkulyevsasha.chartscontest.controls
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.CornerPathEffect
+import android.graphics.Paint
+import android.support.v4.content.ContextCompat
 import android.support.v4.view.GestureDetectorCompat
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
+import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
 
 
@@ -36,6 +40,44 @@ class Slider @JvmOverloads constructor(
     private var isRightBorderMoving: Boolean = false
     private var isSquareMoving: Boolean = false
 
+    private val paintWhiteLine: Paint
+    private val paintWhiteBgr: Paint
+    private val paintBgr: Paint
+    private val paintLeftRightRoundedBorder: Paint
+    private val paintLeftRightBorder: Paint
+
+    init {
+        val cornerPathEffect20 = CornerPathEffect(20f)
+
+        paintWhiteBgr = Paint(Paint.ANTI_ALIAS_FLAG)
+        paintWhiteBgr.style = Paint.Style.FILL_AND_STROKE
+        paintWhiteBgr.color = ContextCompat.getColor(context, R.color.white_transparency)
+        paintWhiteBgr.pathEffect = cornerPathEffect20
+        paintWhiteBgr.strokeWidth = 1f
+
+        paintWhiteLine = Paint(Paint.ANTI_ALIAS_FLAG)
+        paintWhiteLine.style = Paint.Style.FILL_AND_STROKE
+        paintWhiteLine.color = ContextCompat.getColor(context, R.color.white)
+        paintWhiteLine.strokeWidth = 3f
+
+        paintBgr = Paint(Paint.ANTI_ALIAS_FLAG)
+        paintBgr.style = Paint.Style.FILL_AND_STROKE
+        paintBgr.color = ContextCompat.getColor(context, R.color.bgrnd)
+        paintBgr.pathEffect = cornerPathEffect20
+        paintBgr.strokeWidth = 1f
+
+        paintLeftRightRoundedBorder = Paint(Paint.ANTI_ALIAS_FLAG)
+        paintLeftRightRoundedBorder.style = Paint.Style.FILL_AND_STROKE
+        paintLeftRightRoundedBorder.color = ContextCompat.getColor(context, R.color.border_transparent)
+        paintLeftRightRoundedBorder.pathEffect = cornerPathEffect20
+        paintLeftRightRoundedBorder.strokeWidth = 1f
+
+        paintLeftRightBorder = Paint(Paint.ANTI_ALIAS_FLAG)
+        paintLeftRightBorder.style = Paint.Style.FILL_AND_STROKE
+        paintLeftRightBorder.color = ContextCompat.getColor(context, R.color.border_transparent)
+        paintLeftRightBorder.strokeWidth = 1f
+    }
+
     fun setData(chartData: ChartData, onActionIndicesChange: OnActionIndicesChange) {
         super.setData(chartData)
         this.onActionIndicesChange = onActionIndicesChange
@@ -61,15 +103,44 @@ class Slider @JvmOverloads constructor(
             delta = (x2 - x1) / (stopIndex - startIndex)
             deltaMagic = delta / MAGIC
 
-            this.drawRect(x1, y1, x2, y2, paintWhiteBgr)
-            this.drawRect(0f, 0f, x1, baseHeight, paintBgr)
-            this.drawRect(x2, 0f, baseWidth, baseHeight, paintBgr)
+            //this.drawRect(x1, y1, x2, y2, paintWhiteBgr)
+            this.drawRect(0f, 0f, x1 + LEFT_RIGHT_BORDER_WIDTH, baseHeight, paintBgr)
+            this.drawRect(x2 - LEFT_RIGHT_BORDER_WIDTH, 0f, baseWidth, baseHeight, paintBgr)
 
-            this.drawLine(x1, y1, x2, y1, paintTopBottomBorder)
-            this.drawLine(x1, y2, x2, y2, paintTopBottomBorder)
+            this.drawLine(
+                x1 + LEFT_RIGHT_BORDER_WIDTH / 2,
+                y1,
+                x2 - LEFT_RIGHT_BORDER_WIDTH / 2,
+                y1,
+                paintTopBottomBorder
+            )
+            this.drawLine(
+                x1 + LEFT_RIGHT_BORDER_WIDTH / 2,
+                y2,
+                x2 - LEFT_RIGHT_BORDER_WIDTH / 2,
+                y2,
+                paintTopBottomBorder
+            )
 
-            this.drawRect(x1, y1, x1 + LEFT_RIGHT_BORDER_WIDTH, y2, paintLeftRightBorder)
-            this.drawRect(x2 - LEFT_RIGHT_BORDER_WIDTH, y1, x2, y2, paintLeftRightBorder)
+            this.drawRect(x1, y1, x1 + LEFT_RIGHT_BORDER_WIDTH, y2, paintLeftRightRoundedBorder)
+            this.drawRect(x1 + LEFT_RIGHT_BORDER_WIDTH / 2, y1, x1 + LEFT_RIGHT_BORDER_WIDTH, y2, paintLeftRightBorder)
+            this.drawLine(
+                x1 + LEFT_RIGHT_BORDER_WIDTH / 2,
+                y1 + 30,
+                x1 + LEFT_RIGHT_BORDER_WIDTH / 2,
+                y2 - 30,
+                paintWhiteLine
+            )
+
+            this.drawRect(x2 - LEFT_RIGHT_BORDER_WIDTH, y1, x2, y2, paintLeftRightRoundedBorder)
+            this.drawRect(x2 - LEFT_RIGHT_BORDER_WIDTH, y1, x2 - LEFT_RIGHT_BORDER_WIDTH / 2, y2, paintLeftRightBorder)
+            this.drawLine(
+                x2 - LEFT_RIGHT_BORDER_WIDTH / 2,
+                y1 + 30,
+                x2 - LEFT_RIGHT_BORDER_WIDTH / 2,
+                y2 - 30,
+                paintWhiteLine
+            )
         }
     }
 

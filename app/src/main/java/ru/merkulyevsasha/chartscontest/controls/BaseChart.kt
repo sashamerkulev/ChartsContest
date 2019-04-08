@@ -28,9 +28,6 @@ open class BaseChart @JvmOverloads constructor(
     internal val textPaint: Paint
 
     internal val paintTopBottomBorder: Paint
-    internal val paintLeftRightBorder: Paint
-    internal val paintBgr: Paint
-    internal val paintWhiteBgr: Paint
 
     internal var baseWidth: Float = 0f
     internal var baseHeight: Float = 0f
@@ -50,24 +47,11 @@ open class BaseChart @JvmOverloads constructor(
         paintTopBottomBorder.color = ContextCompat.getColor(context, R.color.border_transparent)
         paintTopBottomBorder.strokeWidth = TOP_BOTTOM_BORDER_WIDTH
 
-        paintLeftRightBorder = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintLeftRightBorder.style = Paint.Style.FILL
-        paintLeftRightBorder.color = ContextCompat.getColor(context, R.color.border_transparent)
-        paintLeftRightBorder.strokeWidth = 0f
-
         textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         textPaint.strokeWidth = TEXT_STROKE_WIDTH
         textPaint.style = Paint.Style.FILL_AND_STROKE
         textPaint.color = ContextCompat.getColor(getContext(), R.color.legend)
         textPaint.textSize = TEXT_SIZE_DP * metrics.density
-
-        paintBgr = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintBgr.style = Paint.Style.FILL
-        paintBgr.color = ContextCompat.getColor(context, R.color.bgrnd)
-
-        paintWhiteBgr = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintWhiteBgr.style = Paint.Style.FILL
-        paintWhiteBgr.color = ContextCompat.getColor(context, R.color.white_transparency)
     }
 
     open fun setData(chartData: ChartData) {
@@ -217,9 +201,8 @@ open class BaseChart @JvmOverloads constructor(
 
     companion object {
         const val ROWS = 6
-        const val COLUMNS = 6
         const val TEXT_SIZE_DP = 12
-        const val LEFT_RIGHT_BORDER_WIDTH = 15f
+        const val LEFT_RIGHT_BORDER_WIDTH = 30f
         const val TOP_BOTTOM_BORDER_WIDTH = 3f
         const val CHART_STOKE_WIDTH = 3f
         const val CIRCLE_CHART_STOKE_WIDTH = 8f

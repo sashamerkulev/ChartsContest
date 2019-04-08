@@ -77,7 +77,7 @@ class ChartLegend @JvmOverloads constructor(
         textLegendPaint.color = ContextCompat.getColor(getContext(), R.color.black)
         textLegendPaint.textSize = BaseChart.TEXT_SIZE_DP * metrics.density
 
-        val cornerPathEffect10 = CornerPathEffect(10f)
+        val cornerPathEffect10 = CornerPathEffect(20f)
         legendRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         legendRectPaint.strokeWidth = BaseChart.LEGEND_RECT_STOKE_WIDTH
         legendRectPaint.style = Paint.Style.STROKE
