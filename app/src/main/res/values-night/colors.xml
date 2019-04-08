@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#424242</color>
-    <color name="colorPrimaryDark">#303030</color>
+    <color name="colorPrimary">#242F3E</color>
+    <color name="colorPrimaryDark">#242F3E</color>
     <color name="colorAccent">#ffffff</color>
 
     <color name="black">#222222</color>
@@ -9,9 +9,9 @@
     <color name="white_transparency">#00333333</color>
 
     <color name="bgrnd">#A0303030</color>
-    <color name="border">#303030</color>
-    <color name="border_transparent">#70000000</color>
+    <color name="border">#485C6D</color>
+    <color name="border_transparent">#485C6D</color>
 
-    <color name="legend">#96A2AA</color>
+    <color name="legend">#1C2533</color>
 
 </resources>

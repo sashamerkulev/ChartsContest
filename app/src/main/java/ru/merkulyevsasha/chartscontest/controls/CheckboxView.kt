@@ -68,7 +68,7 @@ class CheckboxView(
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         baseWidth = checkSize + titleBound.width() + padding * 2
-        baseHeight = titleBound.height() + padding * 2
+        baseHeight = 30 + padding * 2
         setMeasuredDimension(baseWidth.toInt() + 20, baseHeight.toInt() + 20)
     }
 
