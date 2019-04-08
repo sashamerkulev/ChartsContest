@@ -128,54 +128,72 @@ open class Chart @JvmOverloads constructor(
 
         val newChartLines = getChartLines2(newStartIndex, stopIndex, minX, maxX, minY, maxY)
         onDataChange?.onDataChanged(startIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, newChartLines, yShouldVisible)
+        animationEnd(newStartIndex, stopIndex, newChartLines)
+        invalidate()
 
-        if (animationInProgress.compareAndSet(false, true)) {
-            animatorSet = AnimatorSet()
-            val animators = mutableListOf<Animator>()
-            for (indexLine in chartLines.size - 1 downTo 0) {
-                val chartLine = chartLines[indexLine]
-                val newChartLine = newChartLines[indexLine]
-                val x1Animator = ValueAnimator.ofFloat(chartLine.x1, newChartLine.x1)
-                x1Animator.addUpdateListener { value ->
-                    value.animatedValue?.apply {
-                        chartLine.x1 = this as Float
-                        invalidate()
-                    }
-                }
-                animators.add(x1Animator)
-                val x2Animator = ValueAnimator.ofFloat(chartLine.x2, newChartLine.x2)
-                x2Animator.addUpdateListener { value ->
-                    value.animatedValue?.apply {
-                        chartLine.x2 = this as Float
-                        invalidate()
-                    }
-                }
-                animators.add(x2Animator)
-            }
-            animatorSet?.apply {
-                this.playTogether(animators)
-                this.duration = ANIMATION_DURATION
-                this.addListener(object : Animator.AnimatorListener {
-                    override fun onAnimationRepeat(animation: Animator?) {
-                    }
-
-                    override fun onAnimationEnd(animation: Animator?) {
-                        animationEnd(newStartIndex, stopIndex, newChartLines)
-                    }
-
-                    override fun onAnimationCancel(animation: Animator?) {
-                        animationEnd(newStartIndex, stopIndex, newChartLines)
-                    }
-
-                    override fun onAnimationStart(animation: Animator?) {
-                    }
-                })
-                this.start()
-            }
-        }
+//        if (animationInProgress.compareAndSet(false, true)) {
+//            animatorSet = AnimatorSet()
+//            val animators = mutableListOf<Animator>()
+//            for (indexLine in chartLines.size - 1 downTo 0) {
+//                val chartLine = chartLines[indexLine]
+//                val newChartLine = newChartLines[indexLine]
+//                val x1Animator = ValueAnimator.ofFloat(chartLine.x1, newChartLine.x1)
+//                x1Animator.addUpdateListener { value ->
+//                    value.animatedValue?.apply {
+//                        chartLine.x1 = this as Float
+//                        invalidate()
+//                    }
+//                }
+//                animators.add(x1Animator)
+//                val x2Animator = ValueAnimator.ofFloat(chartLine.x2, newChartLine.x2)
+//                x2Animator.addUpdateListener { value ->
+//                    value.animatedValue?.apply {
+//                        chartLine.x2 = this as Float
+//                        invalidate()
+//                    }
+//                }
+//                animators.add(x2Animator)
+//            }
+//            animatorSet?.apply {
+//                this.playTogether(animators)
+//                this.duration = ANIMATION_DURATION
+//                this.addListener(object : Animator.AnimatorListener {
+//                    override fun onAnimationRepeat(animation: Animator?) {
+//                    }
+//
+//                    override fun onAnimationEnd(animation: Animator?) {
+//                        animationEnd(newStartIndex, stopIndex, newChartLines)
+//                    }
+//
+//                    override fun onAnimationCancel(animation: Animator?) {
+//                        animationEnd(newStartIndex, stopIndex, newChartLines)
+//                    }
+//
+//                    override fun onAnimationStart(animation: Animator?) {
+//                    }
+//                })
+//                this.start()
+//            }
+//        }
     }
 
-    fun onStopIndexChanged(stopIndex: Int) {
+    fun onStopIndexChanged(newStopIndex: Int) {
+        if (animationInProgress.compareAndSet(true, false)) {
+            animatorSet?.cancel()
+            animatorSet = null
+        }
+
+        chartLines.clear()
+        chartLines.addAll(getChartLines2(startIndex, newStopIndex, minX, maxX, minY, maxY))
+
+        maxX = chartData.xValuesInDays.subList(startIndex, newStopIndex).max()!!
+        minX = chartData.xValuesInDays.subList(startIndex, newStopIndex).min()!!
+        xScale = baseWidth / (maxX - minX).toFloat()
+
+        val newChartLines = getChartLines2(startIndex, newStopIndex, minX, maxX, minY, maxY)
+        onDataChange?.onDataChanged(startIndex, newStopIndex, minX, minY, maxX, maxY, xScale, yScale, newChartLines, yShouldVisible)
+        animationEnd(startIndex, newStopIndex, newChartLines)
+        invalidate()
     }
 
     fun setData(chartData: ChartData, onDataChange: OnDataChange) {
