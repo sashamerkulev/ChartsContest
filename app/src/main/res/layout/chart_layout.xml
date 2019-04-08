@@ -50,13 +50,16 @@
                 android:layout_below="@+id/chartXLegend"
                 />
 
-        <LinearLayout
+        <com.google.android.flexbox.FlexboxLayout
                 android:id="@+id/container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginTop="4dp"
                 android:layout_below="@+id/slider"
+                app:flexWrap="wrap"
+                app:alignItems="stretch"
+                app:alignContent="stretch"
                 />
 
     </RelativeLayout>
