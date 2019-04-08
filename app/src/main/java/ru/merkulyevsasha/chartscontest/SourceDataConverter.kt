@@ -62,6 +62,8 @@ class SourceDataConverter {
             "y1" -> names.y1
             "y2" -> names.y2
             "y3" -> names.y3
+            "y4" -> names.y4
+            "y5" -> names.y5
             else -> ""
         }
     }
@@ -72,6 +74,8 @@ class SourceDataConverter {
             "y1" -> types.y1
             "y2" -> types.y2
             "y3" -> types.y3
+            "y4" -> types.y4
+            "y5" -> types.y5
             else -> ""
         }
     }
@@ -82,6 +86,9 @@ class SourceDataConverter {
             "y1" -> Color.parseColor(colors.y1)
             "y2" -> Color.parseColor(colors.y2)
             "y3" -> Color.parseColor(colors.y3)
+
+            "y4" -> Color.parseColor(colors.y4)
+            "y5" -> Color.parseColor(colors.y5)
             else -> 0
         }
     }

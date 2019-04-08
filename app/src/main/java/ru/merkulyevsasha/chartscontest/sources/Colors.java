@@ -17,6 +17,12 @@ public class Colors {
     @SerializedName("y3")
     @Expose
     private String y3;
+    @SerializedName("y4")
+    @Expose
+    private String y4;
+    @SerializedName("y5")
+    @Expose
+    private String y5;
 
     public String getY0() {
         return y0;
@@ -50,4 +56,19 @@ public class Colors {
         this.y3 = y3;
     }
 
+    public String getY4() {
+        return y4;
+    }
+
+    public void setY4(String y4) {
+        this.y4 = y4;
+    }
+
+    public String getY5() {
+        return y5;
+    }
+
+    public void setY5(String y5) {
+        this.y5 = y5;
+    }
 }
