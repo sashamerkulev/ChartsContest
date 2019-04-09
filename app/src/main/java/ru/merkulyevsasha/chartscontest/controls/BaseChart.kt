@@ -15,25 +15,21 @@ open class BaseChart @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    internal lateinit var chartData: ChartData
+    internal var baseWidth: Float = 0f
+    internal var baseHeight: Float = 0f
     internal var xScale: Float = 1f
     internal var yScale: Float = 1f
     internal var maxY: Long = 0
     internal var minY: Long = 0
     internal var maxX: Long = 0
     internal var minX: Long = 0
-
-
-    internal var baseWidth: Float = 0f
-    internal var baseHeight: Float = 0f
-
     internal var startIndex: Int = 0
     internal var stopIndex: Int = 0
 
+    internal lateinit var chartData: ChartData
     internal val paints = mutableMapOf<String, Paint>()
     internal val yShouldVisible = mutableMapOf<Int, Boolean>()
     internal val chartLines = mutableListOf<ChartLineExt>()
-//    internal val chartLines = mutableListOf<ChartLine>()
 
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
@@ -118,7 +114,13 @@ open class BaseChart @JvmOverloads constructor(
                     }
                     "bar" -> {
                         if (yShouldVisible[chartLine.yIndex] == true) {
-                            drawRect(chartLine.x-5, chartLine.y, chartLine.x + 5, baseHeight, chartLine.paint)
+                            drawRect(
+                                chartLine.x - BAR_SIZE / 2,
+                                chartLine.y,
+                                chartLine.x + BAR_SIZE / 2,
+                                baseHeight,
+                                chartLine.paint
+                            )
                         }
                     }
                     "area" -> {
@@ -213,13 +215,14 @@ open class BaseChart @JvmOverloads constructor(
         const val TEXT_SIZE_DP = 12
         const val LEFT_RIGHT_BORDER_WIDTH = 30f
         const val TOP_BOTTOM_BORDER_WIDTH = 3f
-        const val CHART_STOKE_WIDTH = 3f
+        const val CHART_STOKE_WIDTH = 2f
         const val CIRCLE_CHART_STOKE_WIDTH = 5f
         const val CIRCLE_CHART_RADIUS = 15f
         const val LEGEND_RECT_STOKE_WIDTH = 5f
         const val TEXT_STROKE_WIDTH = 1f
         const val ANIMATION_DURATION: Long = 300
         const val MINIMAL_DISTANCE = 50
+        const val BAR_SIZE = 10
         const val MAGIC = 1.1f
     }
 

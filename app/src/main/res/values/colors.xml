@@ -7,10 +7,12 @@
     <color name="bgrnd">#F0F0F0</color>
 
     <color name="black">#222222</color>
+    <color name="legend_title">#222222</color>
     <color name="white">#ffffff</color>
 
 
     <color name="white_transparency">#11fefefe</color>
+    <color name="white_shadow">#99ffffff</color>
 
     <color name="bgrnd_out_slider">#77EDF5FB</color>
     <color name="border_slider">#B9CFDF</color>
