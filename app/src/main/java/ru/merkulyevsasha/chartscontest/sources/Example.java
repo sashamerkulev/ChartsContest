@@ -19,6 +19,12 @@ public class Example {
     @SerializedName("colors")
     @Expose
     private Colors colors;
+    @SerializedName("percentage")
+    @Expose
+    private Boolean percentage;
+    @SerializedName("stacked")
+    @Expose
+    private Boolean stacked;
 
     public List<List<String>> getColumns() {
         return columns;
@@ -52,4 +58,19 @@ public class Example {
         this.colors = colors;
     }
 
+    public Boolean getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(Boolean percentage) {
+        this.percentage = percentage;
+    }
+
+    public Boolean getStacked() {
+        return stacked;
+    }
+
+    public void setStacked(Boolean stacked) {
+        this.stacked = stacked;
+    }
 }

@@ -26,6 +26,9 @@ public class Types {
     @SerializedName("y5")
     @Expose
     private String y5;
+    @SerializedName("y6")
+    @Expose
+    private String y6;
 
     public String getY0() {
         return y0;
@@ -81,5 +84,13 @@ public class Types {
 
     public void setY5(String y5) {
         this.y5 = y5;
+    }
+
+    public String getY6() {
+        return y6;
+    }
+
+    public void setY6(String y6) {
+        this.y6 = y6;
     }
 }

@@ -25,7 +25,14 @@ class SourceDataConverter {
                 val type = getTypes(element[0], example.types)
                 val name = getNames(element[0], example.names)
                 val color = getColor(element[0], example.colors)
-                val yVal = YValue(getValues(element), type, name, color)
+                val yVal = YValue(
+                    getValues(element),
+                    type,
+                    name,
+                    color,
+                    example.percentage ?: false,
+                    example.stacked ?: false
+                )
                 yValues.add(yVal)
             }
         }
@@ -64,6 +71,7 @@ class SourceDataConverter {
             "y3" -> names.y3
             "y4" -> names.y4
             "y5" -> names.y5
+            "y6" -> names.y6
             else -> ""
         }
     }
@@ -76,6 +84,7 @@ class SourceDataConverter {
             "y3" -> types.y3
             "y4" -> types.y4
             "y5" -> types.y5
+            "y6" -> types.y6
             else -> ""
         }
     }
@@ -86,9 +95,9 @@ class SourceDataConverter {
             "y1" -> Color.parseColor(colors.y1)
             "y2" -> Color.parseColor(colors.y2)
             "y3" -> Color.parseColor(colors.y3)
-
             "y4" -> Color.parseColor(colors.y4)
             "y5" -> Color.parseColor(colors.y5)
+            "y6" -> Color.parseColor(colors.y6)
             else -> 0
         }
     }

@@ -29,5 +29,7 @@ data class YValue(
     val yValues: List<Long>,
     val type: String,
     val name: String,
-    val color: Int
+    val color: Int,
+    val percentage: Boolean,
+    val stacked: Boolean
 )
