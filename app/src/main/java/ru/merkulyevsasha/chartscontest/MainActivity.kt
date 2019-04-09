@@ -35,7 +35,7 @@ class MainActivity : AppCompatActivity(), IMainView {
         try {
             val examples = mutableListOf<Example>()
             for (index in 1..5) {
-                val source = readSource("contest/$index/overview.json")
+                val source = readSource("contest2/$index/overview.json")
                 val root = convertToObject(source)
                 examples.add(root)
             }
