@@ -94,13 +94,14 @@ class ChartLayoutView @JvmOverloads constructor(
             val ys = chartData.ys[index]
             val view = CheckboxView(context, ys.name, true, ys.color)
             view.setOnClickListener { _ ->
-                if (!view.checked) {
-                    view.setCheck(true)
+                view.setCheck(!view.checked)
+                if (view.checked) {
                     chart.onYDataSwitched(index, view.checked)
+                    chartProgress.onYDataSwitched(index, view.checked)
                 } else {
-                    view.setCheck(false)
                     if (isThereAtLeastOneChecked()) {
                         chart.onYDataSwitched(index, view.checked)
+                        chartProgress.onYDataSwitched(index, view.checked)
                     } else {
                         view.setCheck(true)
                     }

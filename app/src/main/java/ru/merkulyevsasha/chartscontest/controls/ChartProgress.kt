@@ -22,4 +22,26 @@ class ChartProgress @JvmOverloads constructor(
         chartLines.clear()
         chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
     }
+
+    fun onYDataSwitched(index: Int, checked: Boolean) {
+        yShouldVisible[index] = checked
+
+        minY = getMinYAccordingToVisibility(0, chartData.xValues.size - 1)
+        maxY = getMaxYAccordingToVisibility(0, chartData.xValues.size - 1)
+        yScale = baseHeight / (maxY - minY).toFloat()
+
+        chartLines.clear()
+        chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
+
+        for (indexLine in 0 until chartLines.size) {
+            val chartLine = chartLines[indexLine]
+            if (yShouldVisible[chartLine.index]!!) {
+                chartLine.paint.alpha = 100
+            } else {
+                chartLine.paint.alpha = 0
+            }
+        }
+
+        invalidate()
+    }
 }
