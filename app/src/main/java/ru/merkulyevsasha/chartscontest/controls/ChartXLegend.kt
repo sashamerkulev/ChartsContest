@@ -62,7 +62,7 @@ class ChartXLegend @JvmOverloads constructor(
         maxY: Long,
         xScale: Float,
         yScale: Float,
-        chartLines: List<BaseChart.ChartLine>,
+        chartLines: List<BaseChart.ChartLineExt>,
         yShouldVisible: Map<Int, Boolean>
     ) {
         this.startIndex = startIndex

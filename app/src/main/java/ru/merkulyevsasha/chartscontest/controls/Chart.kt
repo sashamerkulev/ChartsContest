@@ -1,8 +1,6 @@
 package ru.merkulyevsasha.chartscontest.controls
 
-import android.animation.Animator
 import android.animation.AnimatorSet
-import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -60,74 +58,86 @@ open class Chart @JvmOverloads constructor(
         maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
         yScale = baseHeight / (maxY - minY).toFloat()
 
-        val newChartLines = getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY)
+        val newChartLines = getChartLinesExt(startIndex, stopIndex, minX, maxX, minY, maxY)
 
-        onDataChange?.onDataChanged(startIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, newChartLines, yShouldVisible)
+        onDataChange?.onDataChanged(
+            startIndex,
+            stopIndex,
+            minX,
+            minY,
+            maxX,
+            maxY,
+            xScale,
+            yScale,
+            newChartLines,
+            yShouldVisible
+        )
 
         if (animationInProgress.compareAndSet(false, true)) {
-            animatorSet = AnimatorSet()
-            val animators = mutableListOf<Animator>()
-            for (indexLine in 0 until chartLines.size) {
-                val chartLine = chartLines[indexLine]
-                val newChartLine = newChartLines[indexLine]
-                if (yShouldVisible[chartLine.index]!!) {
-                    if (chartLine.paint.alpha == 0) {
-                        val paintAnimator = ValueAnimator.ofInt(0, 255)
-                        paintAnimator.addUpdateListener { value ->
-                            value.animatedValue?.apply {
-                                chartLine.paint.alpha = this as Int
-                                invalidate()
-                            }
-                        }
-                        animators.add(paintAnimator)
-                    }
-                    val y1Animator = ValueAnimator.ofFloat(chartLine.y1, newChartLine.y1)
-                    y1Animator.addUpdateListener { value ->
-                        value.animatedValue?.apply {
-                            chartLine.y1 = this as Float
-                            invalidate()
-                        }
-                    }
-                    val y2Animator = ValueAnimator.ofFloat(chartLine.y2, newChartLine.y2)
-                    y2Animator.addUpdateListener { value ->
-                        value.animatedValue?.apply {
-                            chartLine.y2 = this as Float
-                            invalidate()
-                        }
-                    }
-                    animators.add(y1Animator)
-                    animators.add(y2Animator)
-                } else {
-                    val paintAnimator = ValueAnimator.ofInt(255, 0)
-                    paintAnimator.addUpdateListener { value ->
-                        value.animatedValue?.apply {
-                            chartLine.paint.alpha = this as Int
-                            invalidate()
-                        }
-                    }
-                    animators.add(paintAnimator)
-                }
-            }
-            animatorSet?.apply {
-                this.playTogether(animators)
-                this.duration = ANIMATION_DURATION
-                this.addListener(object : Animator.AnimatorListener {
-                    override fun onAnimationRepeat(animation: Animator?) {
-                    }
-
-                    override fun onAnimationEnd(animation: Animator?) {
-                        animationEnd(startIndex, stopIndex, newChartLines)
-                    }
-
-                    override fun onAnimationCancel(animation: Animator?) {
-                        animationEnd(startIndex, stopIndex, newChartLines)
-                    }
-
-                    override fun onAnimationStart(animation: Animator?) {
-                    }
-                })
-                this.start()
-            }
+//            animatorSet = AnimatorSet()
+//            val animators = mutableListOf<Animator>()
+//            for (indexLine in 0 until chartLines.size) {
+//                val chartLine = chartLines[indexLine]
+//                val newChartLine = newChartLines[indexLine]
+//                if (yShouldVisible[chartLine.index]!!) {
+//                    if (chartLine.paint.alpha == 0) {
+//                        val paintAnimator = ValueAnimator.ofInt(0, 255)
+//                        paintAnimator.addUpdateListener { value ->
+//                            value.animatedValue?.apply {
+//                                chartLine.paint.alpha = this as Int
+//                                invalidate()
+//                            }
+//                        }
+//                        animators.add(paintAnimator)
+//                    }
+//                    val y1Animator = ValueAnimator.ofFloat(chartLine.y1, newChartLine.y1)
+//                    y1Animator.addUpdateListener { value ->
+//                        value.animatedValue?.apply {
+//                            chartLine.y1 = this as Float
+//                            invalidate()
+//                        }
+//                    }
+//                    val y2Animator = ValueAnimator.ofFloat(chartLine.y2, newChartLine.y2)
+//                    y2Animator.addUpdateListener { value ->
+//                        value.animatedValue?.apply {
+//                            chartLine.y2 = this as Float
+//                            invalidate()
+//                        }
+//                    }
+//                    animators.add(y1Animator)
+//                    animators.add(y2Animator)
+//                } else {
+//                    val paintAnimator = ValueAnimator.ofInt(255, 0)
+//                    paintAnimator.addUpdateListener { value ->
+//                        value.animatedValue?.apply {
+//                            chartLine.paint.alpha = this as Int
+//                            invalidate()
+//                        }
+//                    }
+//                    animators.add(paintAnimator)
+//                }
+//            }
+//            animatorSet?.apply {
+//                this.playTogether(animators)
+//                this.duration = ANIMATION_DURATION
+//                this.addListener(object : Animator.AnimatorListener {
+//                    override fun onAnimationRepeat(animation: Animator?) {
+//                    }
+//
+//                    override fun onAnimationEnd(animation: Animator?) {
+//                        animationEnd(startIndex, stopIndex, newChartLines)
+//                    }
+//
+//                    override fun onAnimationCancel(animation: Animator?) {
+//                        animationEnd(startIndex, stopIndex, newChartLines)
+//                    }
+//
+//                    override fun onAnimationStart(animation: Animator?) {
+//                    }
+//                })
+//                this.start()
+//            }
+            animationEnd(startIndex, stopIndex, newChartLines)
         }
     }
 
@@ -138,7 +148,7 @@ open class Chart @JvmOverloads constructor(
         }
 
         chartLines.clear()
-        chartLines.addAll(getChartLines2(newStartIndex, stopIndex, minX, maxX, minY, maxY))
+        chartLines.addAll(getChartLinesExt(newStartIndex, stopIndex, minX, maxX, minY, maxY))
 
         minY = getMinYAccordingToVisibility(startIndex, stopIndex)
         maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
@@ -148,8 +158,19 @@ open class Chart @JvmOverloads constructor(
         minX = chartData.xValuesInDays.subList(newStartIndex, stopIndex).min()!!
         xScale = baseWidth / (maxX - minX).toFloat()
 
-        val newChartLines = getChartLines2(newStartIndex, stopIndex, minX, maxX, minY, maxY)
-        onDataChange?.onDataChanged(newStartIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, newChartLines, yShouldVisible)
+        val newChartLines = getChartLinesExt(newStartIndex, stopIndex, minX, maxX, minY, maxY)
+        onDataChange?.onDataChanged(
+            newStartIndex,
+            stopIndex,
+            minX,
+            minY,
+            maxX,
+            maxY,
+            xScale,
+            yScale,
+            newChartLines,
+            yShouldVisible
+        )
         animationEnd(newStartIndex, stopIndex, newChartLines)
         invalidate()
     }
@@ -161,7 +182,7 @@ open class Chart @JvmOverloads constructor(
         }
 
         chartLines.clear()
-        chartLines.addAll(getChartLines2(startIndex, newStopIndex, minX, maxX, minY, maxY))
+        chartLines.addAll(getChartLinesExt(startIndex, newStopIndex, minX, maxX, minY, maxY))
 
         minY = getMinYAccordingToVisibility(startIndex, stopIndex)
         maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
@@ -171,8 +192,19 @@ open class Chart @JvmOverloads constructor(
         minX = chartData.xValuesInDays.subList(startIndex, newStopIndex).min()!!
         xScale = baseWidth / (maxX - minX).toFloat()
 
-        val newChartLines = getChartLines2(startIndex, newStopIndex, minX, maxX, minY, maxY)
-        onDataChange?.onDataChanged(startIndex, newStopIndex, minX, minY, maxX, maxY, xScale, yScale, newChartLines, yShouldVisible)
+        val newChartLines = getChartLinesExt(startIndex, newStopIndex, minX, maxX, minY, maxY)
+        onDataChange?.onDataChanged(
+            startIndex,
+            newStopIndex,
+            minX,
+            minY,
+            maxX,
+            maxY,
+            xScale,
+            yScale,
+            newChartLines,
+            yShouldVisible
+        )
         animationEnd(startIndex, newStopIndex, newChartLines)
         invalidate()
     }
@@ -196,18 +228,29 @@ open class Chart @JvmOverloads constructor(
         xScale = baseWidth / (maxX - minX).toFloat()
         yScale = baseHeight / (maxY - minY).toFloat()
         chartLines.clear()
-        chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
-        onDataChange?.onDataChanged(startIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, chartLines, yShouldVisible)
+        chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, minY, maxY))
+        onDataChange?.onDataChanged(
+            startIndex,
+            stopIndex,
+            minX,
+            minY,
+            maxX,
+            maxY,
+            xScale,
+            yScale,
+            chartLines,
+            yShouldVisible
+        )
     }
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
-            drawYWithLegend(this)
             super.onDraw(this)
+            drawYWithLegend(this)
         }
     }
 
-    private fun animationEnd(startIndex: Int, stopIndex: Int, newChartLines: List<ChartLine>) {
+    private fun animationEnd(startIndex: Int, stopIndex: Int, newChartLines: List<ChartLineExt>) {
         this.startIndex = startIndex
         this.stopIndex = stopIndex
         animationInProgress.set(false)

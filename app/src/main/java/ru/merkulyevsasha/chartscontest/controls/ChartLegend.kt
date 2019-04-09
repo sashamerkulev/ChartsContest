@@ -102,9 +102,11 @@ class ChartLegend @JvmOverloads constructor(
         maxY: Long,
         xScale: Float,
         yScale: Float,
-        chartLines: List<BaseChart.ChartLine>,
+        chartLines: List<BaseChart.ChartLineExt>,
         yShouldVisible: Map<Int, Boolean>
     ) {
+        this.startIndex = startIndex
+        this.stopIndex = stopIndex
         this.minX = minX
         this.minY = minY
         this.maxX = maxX
@@ -196,27 +198,27 @@ class ChartLegend @JvmOverloads constructor(
 
     private fun findMinimalDistancePoint(x: Float, y: Float): Distances? {
         val distances = mutableListOf<Distances>()
-        for (chartLine in chartLines.filter { yShouldVisible[it.index]!! }) {
+        for (chartLine in chartLines.filter { yShouldVisible[it.yIndex]!! }) {
             distances.add(
                 Distances(
-                    Math.abs(chartLine.x1 - x),
-                    Math.abs(chartLine.y1 - y),
-                    chartLine.xValue,
-                    chartLine.x1,
+                    Math.abs(chartLine.x - x),
+                    Math.abs(chartLine.y - y),
+                    chartLine.xDate,
+                    chartLine.x,
                     chartLine.xIndex,
                     chartLine.ys
                 )
             )
-            distances.add(
-                Distances(
-                    Math.abs(chartLine.x2 - x),
-                    Math.abs(chartLine.y2 - y),
-                    chartLine.xValue,
-                    chartLine.x2,
-                    chartLine.xIndex,
-                    chartLine.ys
-                )
-            )
+//            distances.add(
+//                Distances(
+//                    Math.abs(chartLine.x2 - x),
+//                    Math.abs(chartLine.y2 - y),
+//                    chartLine.xValue,
+//                    chartLine.x2,
+//                    chartLine.xIndex,
+//                    chartLine.ys
+//                )
+//            )
         }
         val nearestX = distances.sortedBy { it.distanceX }.filter { it.distanceX < BaseChart.MINIMAL_DISTANCE }
         return nearestX.sortedBy { it.distanceY }.firstOrNull { it.distanceY < BaseChart.MINIMAL_DISTANCE }

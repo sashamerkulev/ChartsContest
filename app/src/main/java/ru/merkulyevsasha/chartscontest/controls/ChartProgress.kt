@@ -20,7 +20,7 @@ class ChartProgress @JvmOverloads constructor(
         yScale = baseHeight / (maxY - minY).toFloat()
         xScale = baseWidth / (maxX - minX).toFloat()
         chartLines.clear()
-        chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
+        chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, minY, maxY))
     }
 
     fun onYDataSwitched(index: Int, checked: Boolean) {
@@ -31,11 +31,11 @@ class ChartProgress @JvmOverloads constructor(
         yScale = baseHeight / (maxY - minY).toFloat()
 
         chartLines.clear()
-        chartLines.addAll(getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY))
+        chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, minY, maxY))
 
         for (indexLine in 0 until chartLines.size) {
             val chartLine = chartLines[indexLine]
-            if (yShouldVisible[chartLine.index]!!) {
+            if (yShouldVisible[chartLine.yIndex]!!) {
                 chartLine.paint.alpha = 100
             } else {
                 chartLine.paint.alpha = 0

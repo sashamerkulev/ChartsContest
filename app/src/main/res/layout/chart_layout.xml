@@ -10,7 +10,9 @@
     <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="16dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="16dp"
             android:background="@color/bgrnd_legend"
             >
 
@@ -37,7 +39,7 @@
         <ru.merkulyevsasha.chartscontest.controls.Chart
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="200dp"
                 android:layout_below="@+id/chartTitle"
                 android:layout_marginTop="8dp"
                 />
@@ -45,7 +47,7 @@
         <ru.merkulyevsasha.chartscontest.controls.ChartLegend
                 android:id="@+id/chartLegend"
                 android:layout_width="match_parent"
-                android:layout_height="150dp"
+                android:layout_height="200dp"
                 android:layout_below="@+id/chartTitle"
                 android:layout_marginTop="8dp"
                 />

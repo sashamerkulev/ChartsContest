@@ -39,7 +39,7 @@ class ChartLayoutView @JvmOverloads constructor(
                 maxY: Long,
                 xScale: Float,
                 yScale: Float,
-                chartLines: List<BaseChart.ChartLine>,
+                chartLines: List<BaseChart.ChartLineExt>,
                 yShouldVisible: Map<Int, Boolean>
             ) {
                 chartLegend.onDataChanged(
@@ -67,8 +67,8 @@ class ChartLayoutView @JvmOverloads constructor(
                     yShouldVisible
                 )
 
-                val startDate = chartLines[0].xValue
-                val stopDate = chartLines[chartLines.size - 1].xValue
+                val startDate = chartLines[0].xDate
+                val stopDate = chartLines[chartLines.size - 1].xDate
                 val pattern = "dd MMM yyyy"
                 val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
                 chartCurrentPeriod.text = "${dateFormat.format(startDate)} - ${dateFormat.format(stopDate)}"
