@@ -32,7 +32,7 @@ class Slider @JvmOverloads constructor(
 
     private var parts: Int = 30
 
-    private lateinit var onActionIndicesChange: OnActionIndicesChange
+    private var onActionIndicesChange: OnActionIndicesChange? = null
 
     private val gestureDetector = GestureDetectorCompat(getContext(), GestureListener())
 
@@ -77,13 +77,16 @@ class Slider @JvmOverloads constructor(
         paintTopBottomBorder.strokeWidth = TOP_BOTTOM_BORDER_WIDTH
     }
 
-    fun setData(chartData: ChartData, onActionIndicesChange: OnActionIndicesChange) {
+    override fun setData(chartData: ChartData) {
         super.setData(chartData)
-        this.onActionIndicesChange = onActionIndicesChange
         parts = chartData.xValuesInDays.size / 5
 
         initEndIndices()
-        onActionIndicesChange.onActionIndicesChanged(startIndex, stopIndex)
+    }
+
+    fun setChangeIndexesCallback(onActionIndicesChange: OnActionIndicesChange) {
+        this.onActionIndicesChange = onActionIndicesChange
+        this.onActionIndicesChange?.onActionIndicesChanged(startIndex, stopIndex)
     }
 
     override fun onMeasureEnd() {
@@ -95,6 +98,9 @@ class Slider @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
+
+            if (!isInitialized()) return@apply
+
             val xDays = chartData.xValuesInDays
 
             x1 = (xDays[startIndex] - minX) * xScale
@@ -210,7 +216,7 @@ class Slider @JvmOverloads constructor(
                     distanceScrollX = 0f
                     stopIndex = chartData.xValuesInDays.size
                 }
-                onActionIndicesChange.onActionIndicesChanged(startIndex, stopIndex)
+                onActionIndicesChange?.onActionIndicesChanged(startIndex, stopIndex)
                 invalidate()
             }
         }
@@ -233,7 +239,7 @@ class Slider @JvmOverloads constructor(
                 if (stopIndex - startIndex < parts) {
                     startIndex = stopIndex - parts
                 }
-                onActionIndicesChange.onActionStartIndexChanged(startIndex)
+                onActionIndicesChange?.onActionStartIndexChanged(startIndex)
                 invalidate()
             }
         }
@@ -256,7 +262,7 @@ class Slider @JvmOverloads constructor(
                 if (stopIndex - startIndex < parts) {
                     stopIndex = startIndex + parts
                 }
-                onActionIndicesChange.onActionStopIndexChanged(stopIndex)
+                onActionIndicesChange?.onActionStopIndexChanged(stopIndex)
                 invalidate()
             }
         }

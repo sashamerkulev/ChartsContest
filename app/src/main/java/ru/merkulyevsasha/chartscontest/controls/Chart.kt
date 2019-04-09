@@ -9,7 +9,6 @@ import android.graphics.Paint
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import ru.merkulyevsasha.chartscontest.R
-import ru.merkulyevsasha.chartscontest.models.ChartData
 import java.util.concurrent.atomic.AtomicBoolean
 
 open class Chart @JvmOverloads constructor(
@@ -170,8 +169,7 @@ open class Chart @JvmOverloads constructor(
         invalidate()
     }
 
-    fun setData(chartData: ChartData, onDataChange: OnDataChange) {
-        super.setData(chartData)
+    fun setDataChangeCallback(onDataChange: OnDataChange) {
         this.onDataChange = onDataChange
     }
 
@@ -245,4 +243,5 @@ open class Chart @JvmOverloads constructor(
         }
         return reductionValue.toString()
     }
+
 }

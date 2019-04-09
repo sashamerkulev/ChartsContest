@@ -91,7 +91,7 @@ open class BaseChart @JvmOverloads constructor(
         //MUST CALL THIS
         setMeasuredDimension(baseWidth.toInt(), baseHeight.toInt())
 
-        onMeasureEnd()
+        if (::chartData.isInitialized) onMeasureEnd()
     }
 
     open fun onMeasureEnd() {
@@ -104,6 +104,10 @@ open class BaseChart @JvmOverloads constructor(
                 drawLine(chartLine.x1, chartLine.y1, chartLine.x2, chartLine.y2, chartLine.paint)
             }
         }
+    }
+
+    internal fun isInitialized(): Boolean {
+        return ::chartData.isInitialized
     }
 
     internal fun getChartLines2(

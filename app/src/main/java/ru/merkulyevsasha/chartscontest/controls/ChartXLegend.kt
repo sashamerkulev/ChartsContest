@@ -38,7 +38,7 @@ class ChartXLegend @JvmOverloads constructor(
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
-            if (yText == 0f) {
+            if (yText == 0f && coordDates.size > 0) {
                 yText = baseHeight / 2 + coordDates[0].bound.height() / 2
             }
 

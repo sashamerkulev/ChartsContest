@@ -23,7 +23,13 @@ class ChartLayoutView @JvmOverloads constructor(
     fun setData(chartData: ChartData) {
         chartTitle.text = chartData.title
         chartCurrentPeriod.text = ""
-        chart.setData(chartData, object : OnDataChange {
+
+        chartXLegend.setData(chartData)
+        chartProgress.setData(chartData)
+        chart.setData(chartData)
+        slider.setData(chartData)
+
+        chart.setDataChangeCallback(object : OnDataChange {
             override fun onDataChanged(
                 startIndex: Int,
                 stopIndex: Int,
@@ -62,15 +68,14 @@ class ChartLayoutView @JvmOverloads constructor(
                 )
 
                 val startDate = chartLines[0].xValue
-                val stopDate = chartLines[chartLines.size-1].xValue
+                val stopDate = chartLines[chartLines.size - 1].xValue
                 val pattern = "dd MMM yyyy"
                 val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
                 chartCurrentPeriod.text = "${dateFormat.format(startDate)} - ${dateFormat.format(stopDate)}"
             }
         })
-        chartXLegend.setData(chartData)
-        chartProgress.setData(chartData)
-        slider.setData(chartData, object : OnActionIndicesChange {
+
+        slider.setChangeIndexesCallback(object : OnActionIndicesChange {
             override fun onActionStartIndexChanged(startIndex: Int) {
                 chart.onStartIndexChanged(startIndex)
             }
@@ -83,6 +88,7 @@ class ChartLayoutView @JvmOverloads constructor(
                 chart.onIndexesChanged(startIndex, stopIndex)
             }
         })
+
         container.removeAllViews()
         for (index in 0 until chartData.ys.size) {
             val ys = chartData.ys[index]
