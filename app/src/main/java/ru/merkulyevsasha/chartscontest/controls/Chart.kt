@@ -56,8 +56,8 @@ open class Chart @JvmOverloads constructor(
 
         yShouldVisible[index] = isChecked
 
-        minY = getMinYAccordingToVisibility()
-        maxY = getMaxYAccordingToVisibility()
+        minY = getMinYAccordingToVisibility(startIndex, stopIndex)
+        maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
         yScale = baseHeight / (maxY - minY).toFloat()
 
         val newChartLines = getChartLines2(startIndex, stopIndex, minX, maxX, minY, maxY)
@@ -140,6 +140,10 @@ open class Chart @JvmOverloads constructor(
         chartLines.clear()
         chartLines.addAll(getChartLines2(newStartIndex, stopIndex, minX, maxX, minY, maxY))
 
+        minY = getMinYAccordingToVisibility(startIndex, stopIndex)
+        maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
+        yScale = baseHeight / (maxY - minY).toFloat()
+
         maxX = chartData.xValuesInDays.subList(newStartIndex, stopIndex).max()!!
         minX = chartData.xValuesInDays.subList(newStartIndex, stopIndex).min()!!
         xScale = baseWidth / (maxX - minX).toFloat()
@@ -158,6 +162,10 @@ open class Chart @JvmOverloads constructor(
 
         chartLines.clear()
         chartLines.addAll(getChartLines2(startIndex, newStopIndex, minX, maxX, minY, maxY))
+
+        minY = getMinYAccordingToVisibility(startIndex, stopIndex)
+        maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
+        yScale = baseHeight / (maxY - minY).toFloat()
 
         maxX = chartData.xValuesInDays.subList(startIndex, newStopIndex).max()!!
         minX = chartData.xValuesInDays.subList(startIndex, newStopIndex).min()!!
@@ -180,6 +188,9 @@ open class Chart @JvmOverloads constructor(
     }
 
     private fun updateIndexes() {
+        minY = getMinYAccordingToVisibility(startIndex, stopIndex)
+        maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
+        yScale = baseHeight / (maxY - minY).toFloat()
         maxX = chartData.xValuesInDays.subList(startIndex, stopIndex).max()!!
         minX = chartData.xValuesInDays.subList(startIndex, stopIndex).min()!!
         xScale = baseWidth / (maxX - minX).toFloat()

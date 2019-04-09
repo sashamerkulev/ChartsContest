@@ -153,20 +153,20 @@ open class BaseChart @JvmOverloads constructor(
         return result
     }
 
-    internal fun getMinYAccordingToVisibility(): Long {
+    internal fun getMinYAccordingToVisibility(startIndex: Int, stopIndex: Int): Long {
         var result: Long = Long.MAX_VALUE
         for (index in 0 until chartData.ys.size) {
             if (!yShouldVisible[index]!!) continue
-            result = Math.min(result, chartData.ys[index].yValues.min()!!)
+            result = Math.min(result, chartData.ys[index].yValues.subList(startIndex, stopIndex).min()!!)
         }
         return result
     }
 
-    internal fun getMaxYAccordingToVisibility(): Long {
+    internal fun getMaxYAccordingToVisibility(startIndex: Int, stopIndex: Int): Long {
         var result: Long = Long.MIN_VALUE
         for (index in 0 until chartData.ys.size) {
             if (!yShouldVisible[index]!!) continue
-            result = Math.max(result, chartData.ys[index].yValues.max()!!)
+            result = Math.max(result, chartData.ys[index].yValues.subList(startIndex, stopIndex).max()!!)
         }
         return result
     }
