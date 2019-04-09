@@ -5,13 +5,19 @@
     <color name="colorAccent">#ffffff</color>
 
     <color name="black">#222222</color>
-    <color name="white">#424242</color>
-    <color name="white_transparency">#00333333</color>
+    <color name="white">#ffffff</color>
 
-    <color name="bgrnd">#A0303030</color>
-    <color name="border">#485C6D</color>
-    <color name="border_transparent">#485C6D</color>
+
+    <color name="white_transparency">#11333333</color>
+
+    <color name="bgrnd_out_slider">#882B3A4D</color>
+    <color name="border_slider">#485C6D</color>
+
+    <color name="border">#1C2533</color>
+    <color name="chart_line">#3A4451</color>
 
     <color name="legend">#1C2533</color>
+    <color name="bgrnd_legend">#242F3E</color>
+    <color name="legend_xy">#707C8C</color>
 
 </resources>

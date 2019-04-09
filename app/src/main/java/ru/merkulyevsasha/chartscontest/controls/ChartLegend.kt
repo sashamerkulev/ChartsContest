@@ -52,7 +52,7 @@ class ChartLegend @JvmOverloads constructor(
 
         paintTopBottomLine = Paint(Paint.ANTI_ALIAS_FLAG)
         paintTopBottomLine.style = Paint.Style.STROKE
-        paintTopBottomLine.color = ContextCompat.getColor(context, R.color.border_transparent)
+        paintTopBottomLine.color = ContextCompat.getColor(context, R.color.chart_line)
         paintTopBottomLine.strokeWidth = BaseChart.CIRCLE_CHART_STOKE_WIDTH
 
         paintCircle = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -63,7 +63,7 @@ class ChartLegend @JvmOverloads constructor(
         paintFillCircle = Paint(Paint.ANTI_ALIAS_FLAG)
         paintFillCircle.strokeWidth = BaseChart.CIRCLE_CHART_STOKE_WIDTH
         paintFillCircle.style = Paint.Style.FILL_AND_STROKE
-        paintFillCircle.color = ContextCompat.getColor(getContext(), R.color.white)
+        paintFillCircle.color = ContextCompat.getColor(getContext(), R.color.bgrnd_legend)
 
         textBlackPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         textBlackPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
@@ -87,7 +87,7 @@ class ChartLegend @JvmOverloads constructor(
         legendFillRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         legendFillRectPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         legendFillRectPaint.style = Paint.Style.FILL_AND_STROKE
-        legendFillRectPaint.color = ContextCompat.getColor(getContext(), R.color.white)
+        legendFillRectPaint.color = ContextCompat.getColor(getContext(), R.color.bgrnd_legend)
         legendFillRectPaint.pathEffect = cornerPathEffect10
 
         pathCornerRect = Path()
@@ -156,8 +156,8 @@ class ChartLegend @JvmOverloads constructor(
                     val yValue = point.ys[index]
                     val pointY = baseHeight - (yValue.yValues[point.xIndex] - minY) * yScale
                     paintCircle.color = yValue.color
-                    this.drawCircle(point.x, pointY, 20f, paintFillCircle)
-                    this.drawCircle(point.x, pointY, 20f, paintCircle)
+                    this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintFillCircle)
+                    this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintCircle)
                 }
 
                 var topX = 10f

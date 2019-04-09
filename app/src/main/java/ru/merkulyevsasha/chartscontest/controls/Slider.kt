@@ -41,19 +41,13 @@ class Slider @JvmOverloads constructor(
     private var isSquareMoving: Boolean = false
 
     private val paintWhiteLine: Paint
-    private val paintWhiteBgr: Paint
     private val paintBgr: Paint
     private val paintLeftRightRoundedBorder: Paint
     private val paintLeftRightBorder: Paint
+    private val paintTopBottomBorder: Paint
 
     init {
         val cornerPathEffect20 = CornerPathEffect(20f)
-
-        paintWhiteBgr = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintWhiteBgr.style = Paint.Style.FILL_AND_STROKE
-        paintWhiteBgr.color = ContextCompat.getColor(context, R.color.white_transparency)
-        paintWhiteBgr.pathEffect = cornerPathEffect20
-        paintWhiteBgr.strokeWidth = 1f
 
         paintWhiteLine = Paint(Paint.ANTI_ALIAS_FLAG)
         paintWhiteLine.style = Paint.Style.FILL_AND_STROKE
@@ -62,26 +56,31 @@ class Slider @JvmOverloads constructor(
 
         paintBgr = Paint(Paint.ANTI_ALIAS_FLAG)
         paintBgr.style = Paint.Style.FILL_AND_STROKE
-        paintBgr.color = ContextCompat.getColor(context, R.color.bgrnd)
+        paintBgr.color = ContextCompat.getColor(context, R.color.bgrnd_out_slider)
         paintBgr.pathEffect = cornerPathEffect20
         paintBgr.strokeWidth = 1f
 
         paintLeftRightRoundedBorder = Paint(Paint.ANTI_ALIAS_FLAG)
         paintLeftRightRoundedBorder.style = Paint.Style.FILL_AND_STROKE
-        paintLeftRightRoundedBorder.color = ContextCompat.getColor(context, R.color.border_transparent)
+        paintLeftRightRoundedBorder.color = ContextCompat.getColor(context, R.color.border_slider)
         paintLeftRightRoundedBorder.pathEffect = cornerPathEffect20
         paintLeftRightRoundedBorder.strokeWidth = 1f
 
         paintLeftRightBorder = Paint(Paint.ANTI_ALIAS_FLAG)
         paintLeftRightBorder.style = Paint.Style.FILL_AND_STROKE
-        paintLeftRightBorder.color = ContextCompat.getColor(context, R.color.border_transparent)
+        paintLeftRightBorder.color = ContextCompat.getColor(context, R.color.border_slider)
         paintLeftRightBorder.strokeWidth = 1f
+
+        paintTopBottomBorder = Paint(Paint.ANTI_ALIAS_FLAG)
+        paintTopBottomBorder.style = Paint.Style.STROKE
+        paintTopBottomBorder.color = ContextCompat.getColor(context, R.color.border_slider)
+        paintTopBottomBorder.strokeWidth = TOP_BOTTOM_BORDER_WIDTH
     }
 
     fun setData(chartData: ChartData, onActionIndicesChange: OnActionIndicesChange) {
         super.setData(chartData)
         this.onActionIndicesChange = onActionIndicesChange
-        parts = chartData.xValuesInDays.size / 3
+        parts = chartData.xValuesInDays.size / 5
 
         initEndIndices()
         onActionIndicesChange.onActionIndicesChanged(startIndex, stopIndex)
@@ -163,8 +162,8 @@ class Slider @JvmOverloads constructor(
     }
 
     private fun isSquare() = x1 + LEFT_RIGHT_BORDER_WIDTH..x2 - LEFT_RIGHT_BORDER_WIDTH
-    private fun isLeftBorderRange() = x1 - 2 * LEFT_RIGHT_BORDER_WIDTH..x1 + 2 * LEFT_RIGHT_BORDER_WIDTH
-    private fun isRightBorderRange() = x2 - 2 * LEFT_RIGHT_BORDER_WIDTH..x2 + 2 * LEFT_RIGHT_BORDER_WIDTH
+    private fun isLeftBorderRange() = x1 - LEFT_RIGHT_BORDER_WIDTH..x1 + LEFT_RIGHT_BORDER_WIDTH
+    private fun isRightBorderRange() = x2 - LEFT_RIGHT_BORDER_WIDTH..x2 + LEFT_RIGHT_BORDER_WIDTH
 
     private fun initEndIndices() {
         startIndex = chartData.xValues.size - parts

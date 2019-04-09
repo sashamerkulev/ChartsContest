@@ -11,20 +11,43 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
+            android:background="@color/bgrnd_legend"
             >
+
+        <TextView
+                android:id="@+id/chartTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/title"
+                android:textColor="@color/colorAccent"
+                android:textSize="14sp"
+                android:layout_alignParentStart="true"
+                />
+
+        <TextView
+                android:id="@+id/chartCurrentPeriod"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/title"
+                android:textColor="@color/colorAccent"
+                android:textSize="14sp"
+                android:layout_alignParentEnd="true"
+                tools:ignore="RelativeOverlap"/>
 
         <ru.merkulyevsasha.chartscontest.controls.Chart
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:layout_alignParentTop="true"
+                android:layout_height="150dp"
+                android:layout_below="@+id/chartTitle"
+                android:layout_marginTop="8dp"
                 />
 
         <ru.merkulyevsasha.chartscontest.controls.ChartLegend
                 android:id="@+id/chartLegend"
                 android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:layout_alignParentTop="true"
+                android:layout_height="150dp"
+                android:layout_below="@+id/chartTitle"
+                android:layout_marginTop="8dp"
                 />
 
         <ru.merkulyevsasha.chartscontest.controls.ChartXLegend
@@ -55,7 +78,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="8dp"
                 android:layout_below="@+id/slider"
                 app:flexWrap="wrap"
                 app:alignItems="stretch"

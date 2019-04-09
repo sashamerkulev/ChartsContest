@@ -63,7 +63,7 @@ class CheckboxView(
         titleRect.style = Paint.Style.STROKE
         titleRect.color = color
         titleRect.pathEffect = cornerPathEffect20
-        titleRect.strokeWidth = 3f
+        titleRect.strokeWidth = 5f
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
@@ -75,7 +75,13 @@ class CheckboxView(
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
             if (checked) {
-                drawRect(0f, 0f, baseWidth, baseHeight, titleBackground)
+                drawRect(
+                    0f + EDGE_PADDING,
+                    0f + EDGE_PADDING,
+                    baseWidth - EDGE_PADDING,
+                    baseHeight - EDGE_PADDING,
+                    titleBackground
+                )
                 drawLine(
                     checkSize,
                     baseHeight / 2 + titleBound.height() / 2,
@@ -92,7 +98,13 @@ class CheckboxView(
                 )
                 drawText(title, checkSize + padding, baseHeight / 2 + titleBound.height() / 2, titlePaint)
             } else {
-                drawRect(0f, 0f, baseWidth, baseHeight, titleRect)
+                drawRect(
+                    0f + EDGE_PADDING,
+                    0f + EDGE_PADDING,
+                    baseWidth - EDGE_PADDING,
+                    baseHeight - EDGE_PADDING,
+                    titleRect
+                )
                 drawText(
                     title,
                     baseWidth / 2 - titleBound.width() / 2,
@@ -106,6 +118,10 @@ class CheckboxView(
     fun setCheck(checked: Boolean) {
         this.checked = checked
         invalidate()
+    }
+
+    companion object {
+        const val EDGE_PADDING = 5
     }
 
 }

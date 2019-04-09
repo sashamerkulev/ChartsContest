@@ -3,10 +3,8 @@ package ru.merkulyevsasha.chartscontest.controls
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.view.View
-import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.models.YValue
 import java.util.*
@@ -25,9 +23,6 @@ open class BaseChart @JvmOverloads constructor(
     internal var maxX: Long = 0
     internal var minX: Long = 0
 
-    internal val textPaint: Paint
-
-    internal val paintTopBottomBorder: Paint
 
     internal var baseWidth: Float = 0f
     internal var baseHeight: Float = 0f
@@ -38,21 +33,6 @@ open class BaseChart @JvmOverloads constructor(
     internal val paints = mutableMapOf<String, Paint>()
     internal val yShouldVisible = mutableMapOf<Int, Boolean>()
     internal val chartLines = mutableListOf<ChartLine>()
-
-    init {
-        val metrics = resources.displayMetrics
-
-        paintTopBottomBorder = Paint(Paint.ANTI_ALIAS_FLAG)
-        paintTopBottomBorder.style = Paint.Style.STROKE
-        paintTopBottomBorder.color = ContextCompat.getColor(context, R.color.border_transparent)
-        paintTopBottomBorder.strokeWidth = TOP_BOTTOM_BORDER_WIDTH
-
-        textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        textPaint.strokeWidth = TEXT_STROKE_WIDTH
-        textPaint.style = Paint.Style.FILL_AND_STROKE
-        textPaint.color = ContextCompat.getColor(getContext(), R.color.legend)
-        textPaint.textSize = TEXT_SIZE_DP * metrics.density
-    }
 
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
@@ -205,7 +185,8 @@ open class BaseChart @JvmOverloads constructor(
         const val LEFT_RIGHT_BORDER_WIDTH = 30f
         const val TOP_BOTTOM_BORDER_WIDTH = 3f
         const val CHART_STOKE_WIDTH = 3f
-        const val CIRCLE_CHART_STOKE_WIDTH = 8f
+        const val CIRCLE_CHART_STOKE_WIDTH = 5f
+        const val CIRCLE_CHART_RADIUS = 15f
         const val LEGEND_RECT_STOKE_WIDTH = 5f
         const val TEXT_STROKE_WIDTH = 1f
         const val ANIMATION_DURATION: Long = 300

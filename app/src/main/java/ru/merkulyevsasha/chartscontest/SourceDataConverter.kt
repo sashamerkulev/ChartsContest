@@ -11,7 +11,7 @@ import java.util.*
 
 class SourceDataConverter {
 
-    fun getChartData(example: Example): ChartData {
+    fun getChartData(title: String, example: Example): ChartData {
         val xValues = mutableListOf<Date>()
         val xValuesInDays = mutableListOf<Long>()
         val yValues = mutableListOf<YValue>()
@@ -29,7 +29,7 @@ class SourceDataConverter {
                 yValues.add(yVal)
             }
         }
-        return ChartData(xValues, xValuesInDays, yValues)
+        return ChartData(title, xValues, xValuesInDays, yValues)
     }
 
     private fun getDateValues(stringValues: List<String>): List<Date> {

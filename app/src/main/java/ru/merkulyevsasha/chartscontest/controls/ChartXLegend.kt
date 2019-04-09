@@ -2,9 +2,11 @@ package ru.merkulyevsasha.chartscontest.controls
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.Rect
+import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
-import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -21,18 +23,21 @@ class ChartXLegend @JvmOverloads constructor(
     private var yText: Float = 0f
     private val calendar = Calendar.getInstance()
 
-    private var stepDate: Int = 6
+    private var stepInDays: Int = 6
     private val coordDates = mutableListOf<CoordDate>()
+    private val textPaint: Paint
 
-    override fun setData(chartData: ChartData) {
-        super.setData(chartData)
-        stepDate = if (chartData.xValues.size > 200) 20 else 6
+    init {
+        val metrics = resources.displayMetrics
+        textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        textPaint.strokeWidth = TEXT_STROKE_WIDTH
+        textPaint.style = Paint.Style.FILL_AND_STROKE
+        textPaint.color = ContextCompat.getColor(getContext(), R.color.legend_xy)
+        textPaint.textSize = TEXT_SIZE_DP * metrics.density
     }
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
-//            drawRect(0f, 0f, baseWidth, baseHeight, paintLeftRightBorder)
-
             if (yText == 0f) {
                 yText = baseHeight / 2 + coordDates[0].bound.height() / 2
             }
@@ -72,14 +77,19 @@ class ChartXLegend @JvmOverloads constructor(
         this.chartLines.addAll(chartLines)
         this.yShouldVisible.clear()
         this.yShouldVisible.putAll(yShouldVisible)
+
+        val startDay = chartData.xValuesInDays[startIndex]
+        val stopDay = chartData.xValuesInDays[stopIndex - 1]
+        val stepInDays = ((stopDay - startDay) / 5).toInt()
+
         coordDates.clear()
-        coordDates.addAll(getCoordDates(stepDate))
+        coordDates.addAll(getCoordDates(stepInDays))
         invalidate()
     }
 
     private fun getCoordDates(step: Int): List<CoordDate> {
         val result = mutableListOf<CoordDate>()
-        for (index in 0 until stopIndex step step) {
+        for (index in 0 until chartData.xValues.size step step) {
             calendar.time = chartData.xValues[index]
             val text = dateFormat.format(calendar.time)
 

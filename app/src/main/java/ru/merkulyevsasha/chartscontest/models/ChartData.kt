@@ -3,6 +3,7 @@ package ru.merkulyevsasha.chartscontest.models
 import java.util.*
 
 data class ChartData(
+    val title: String,
     val xValues: List<Date>,
     val xValuesInDays: List<Long>,
     val ys: List<YValue>

@@ -2,16 +2,24 @@
 <resources>
     <color name="colorPrimary">#517DA2</color>
     <color name="colorPrimaryDark">#426382</color>
-    <color name="colorAccent">#3896D4</color>
+    <color name="colorAccent">#000000</color>
 
     <color name="black">#222222</color>
     <color name="white">#ffffff</color>
+
+
     <color name="white_transparency">#11fefefe</color>
 
-    <color name="bgrnd">#88EDF5FB</color>
+    <color name="bgrnd_out_slider">#77EDF5FB</color>
+    <color name="border_slider">#B9CFDF</color>
+
     <color name="border">#DBE7F0</color>
-    <color name="border_transparent">#B9CFDF</color>
+
+    <color name="chart_line">#E7E9EB</color>
+
 
     <color name="legend">#96A2AA</color>
+    <color name="bgrnd_legend">#FFFFFF</color>
+    <color name="legend_xy">#8E8E93</color>
 
 </resources>

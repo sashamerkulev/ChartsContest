@@ -7,6 +7,8 @@ import android.view.LayoutInflater
 import kotlinx.android.synthetic.main.chart_layout.view.*
 import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class ChartLayoutView @JvmOverloads constructor(
@@ -19,6 +21,8 @@ class ChartLayoutView @JvmOverloads constructor(
     }
 
     fun setData(chartData: ChartData) {
+        chartTitle.text = chartData.title
+        chartCurrentPeriod.text = ""
         chart.setData(chartData, object : OnDataChange {
             override fun onDataChanged(
                 startIndex: Int,
@@ -56,6 +60,12 @@ class ChartLayoutView @JvmOverloads constructor(
                     chartLines,
                     yShouldVisible
                 )
+
+                val startDate = chartLines[0].xValue
+                val stopDate = chartLines[chartLines.size-1].xValue
+                val pattern = "dd MMM yyyy"
+                val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+                chartCurrentPeriod.text = "${dateFormat.format(startDate)} - ${dateFormat.format(stopDate)}"
             }
         })
         chartXLegend.setData(chartData)
@@ -82,9 +92,11 @@ class ChartLayoutView @JvmOverloads constructor(
                     view.setCheck(true)
                     chart.onYDataSwitched(index, view.checked)
                 } else {
+                    view.setCheck(false)
                     if (isThereAtLeastOneChecked()) {
-                        view.setCheck(false)
                         chart.onYDataSwitched(index, view.checked)
+                    } else {
+                        view.setCheck(true)
                     }
                 }
             }

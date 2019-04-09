@@ -5,8 +5,10 @@ import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Rect
+import android.graphics.Paint
+import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
+import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -22,6 +24,23 @@ open class Chart @JvmOverloads constructor(
     private var animatorSet: AnimatorSet? = null
 
     private var onDataChange: OnDataChange? = null
+
+    private val textPaint: Paint
+    private val paintVerticalChartLine: Paint
+
+    init {
+        val metrics = resources.displayMetrics
+        textPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        textPaint.strokeWidth = TEXT_STROKE_WIDTH
+        textPaint.style = Paint.Style.FILL_AND_STROKE
+        textPaint.color = ContextCompat.getColor(getContext(), R.color.legend_xy)
+        textPaint.textSize = TEXT_SIZE_DP * metrics.density
+
+        paintVerticalChartLine = Paint(Paint.ANTI_ALIAS_FLAG)
+        paintVerticalChartLine.style = Paint.Style.STROKE
+        paintVerticalChartLine.color = ContextCompat.getColor(context, R.color.legend_xy)
+        paintVerticalChartLine.strokeWidth = TOP_BOTTOM_BORDER_WIDTH
+    }
 
     fun onIndexesChanged(startIndex: Int, stopIndex: Int) {
         this.startIndex = startIndex
@@ -127,54 +146,9 @@ open class Chart @JvmOverloads constructor(
         xScale = baseWidth / (maxX - minX).toFloat()
 
         val newChartLines = getChartLines2(newStartIndex, stopIndex, minX, maxX, minY, maxY)
-        onDataChange?.onDataChanged(startIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, newChartLines, yShouldVisible)
+        onDataChange?.onDataChanged(newStartIndex, stopIndex, minX, minY, maxX, maxY, xScale, yScale, newChartLines, yShouldVisible)
         animationEnd(newStartIndex, stopIndex, newChartLines)
         invalidate()
-
-//        if (animationInProgress.compareAndSet(false, true)) {
-//            animatorSet = AnimatorSet()
-//            val animators = mutableListOf<Animator>()
-//            for (indexLine in chartLines.size - 1 downTo 0) {
-//                val chartLine = chartLines[indexLine]
-//                val newChartLine = newChartLines[indexLine]
-//                val x1Animator = ValueAnimator.ofFloat(chartLine.x1, newChartLine.x1)
-//                x1Animator.addUpdateListener { value ->
-//                    value.animatedValue?.apply {
-//                        chartLine.x1 = this as Float
-//                        invalidate()
-//                    }
-//                }
-//                animators.add(x1Animator)
-//                val x2Animator = ValueAnimator.ofFloat(chartLine.x2, newChartLine.x2)
-//                x2Animator.addUpdateListener { value ->
-//                    value.animatedValue?.apply {
-//                        chartLine.x2 = this as Float
-//                        invalidate()
-//                    }
-//                }
-//                animators.add(x2Animator)
-//            }
-//            animatorSet?.apply {
-//                this.playTogether(animators)
-//                this.duration = ANIMATION_DURATION
-//                this.addListener(object : Animator.AnimatorListener {
-//                    override fun onAnimationRepeat(animation: Animator?) {
-//                    }
-//
-//                    override fun onAnimationEnd(animation: Animator?) {
-//                        animationEnd(newStartIndex, stopIndex, newChartLines)
-//                    }
-//
-//                    override fun onAnimationCancel(animation: Animator?) {
-//                        animationEnd(newStartIndex, stopIndex, newChartLines)
-//                    }
-//
-//                    override fun onAnimationStart(animation: Animator?) {
-//                    }
-//                })
-//                this.start()
-//            }
-//        }
     }
 
     fun onStopIndexChanged(newStopIndex: Int) {
@@ -244,7 +218,7 @@ open class Chart @JvmOverloads constructor(
                 yRow,
                 width.toFloat(),
                 yRow,
-                paintTopBottomBorder
+                paintVerticalChartLine
             )
             canvas.drawText(reduction(yText + minY), 0f, yRow - 20, textPaint)
             yText += step
@@ -271,6 +245,4 @@ open class Chart @JvmOverloads constructor(
         }
         return reductionValue.toString()
     }
-
-    data class PaintTextInfo(val text: String, val bound: Rect)
 }
