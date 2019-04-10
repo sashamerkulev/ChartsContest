@@ -40,33 +40,44 @@ class ChartLegend @JvmOverloads constructor(
 
     private var isShow: Boolean = false
 
-    private val pxLegendTextPaddingHorizontal: Float
-    private val pxLegendTextPaddingVertical: Float
+    private val pxLegendTextPadding: Float
+    private val pxLegendTextLinePadding: Float
 
-    private var nearestPoint: Distances? = null
+    private var nearestPoint: Distance? = null
     private val paintTopBottomLine: Paint
     private val paintCircle: Paint
     private val paintFillCircle: Paint
     private val legendRectPaint: Paint
     private val legendFillRectPaint: Paint
-    private val textBlackPaint: Paint
-    private val textLegendPaint: Paint
     private val shadowRectPaint: Paint
     private val pathCornerRect: Path
-    private val bound: Rect
 
-    private val pattern = "EEE, MMM dd"
-    private val dateFormat: SimpleDateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+    private val boundLine = Rect()
+    private val boundTitle = Rect()
+
+    private val textLegendTitlePaint: Paint
+    private val textLegendNamePaint: Paint
+    private val textLegendNumberPaint: Paint
+
+
+    private val weekPattern = "EEE, dd"
+    private val weekDateFormat: SimpleDateFormat = SimpleDateFormat(weekPattern, Locale.getDefault())
+
+    private val monthPattern = "MMM yyyy"
+    private val monthDateFormat: SimpleDateFormat = SimpleDateFormat(monthPattern, Locale.getDefault())
 
     private val gestureDetector = GestureDetectorCompat(getContext(), LegendGestureListener())
 
+    private val metrics = resources.displayMetrics
+
+    private var lastLegendData: LegendData? = null
+    private var newLegendData: LegendData? = null
+
     init {
-        val metrics = resources.displayMetrics
-        bound = Rect()
-        pxLegendTextPaddingHorizontal =
+        pxLegendTextPadding =
             TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 16f, metrics)
-        pxLegendTextPaddingVertical =
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4f, metrics)
+        pxLegendTextLinePadding =
+            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, metrics)
 
         paintTopBottomLine = Paint(Paint.ANTI_ALIAS_FLAG)
         paintTopBottomLine.style = Paint.Style.STROKE
@@ -81,19 +92,24 @@ class ChartLegend @JvmOverloads constructor(
         paintFillCircle = Paint(Paint.ANTI_ALIAS_FLAG)
         paintFillCircle.strokeWidth = BaseChart.CIRCLE_CHART_STOKE_WIDTH
         paintFillCircle.style = Paint.Style.FILL_AND_STROKE
-        paintFillCircle.color = ContextCompat.getColor(getContext(), R.color.bgrnd_legend)
+        paintFillCircle.color = ContextCompat.getColor(getContext(), R.color.legend_bgrnd)
 
-        textBlackPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        textBlackPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
-        textBlackPaint.style = Paint.Style.FILL_AND_STROKE
-        textBlackPaint.color = ContextCompat.getColor(getContext(), R.color.black)
-        textBlackPaint.textSize = BaseChart.TEXT_SIZE_DP * metrics.density
+        textLegendTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        textLegendTitlePaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
+        textLegendTitlePaint.style = Paint.Style.FILL_AND_STROKE
+        textLegendTitlePaint.color = ContextCompat.getColor(getContext(), R.color.legend_title)
+        textLegendTitlePaint.textSize = 14 * metrics.density
 
-        textLegendPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        textLegendPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
-        textLegendPaint.style = Paint.Style.FILL_AND_STROKE
-        textLegendPaint.color = ContextCompat.getColor(getContext(), R.color.black)
-        textLegendPaint.textSize = BaseChart.TEXT_SIZE_DP * metrics.density
+        textLegendNamePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        textLegendNamePaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
+        textLegendNamePaint.style = Paint.Style.FILL_AND_STROKE
+        textLegendNamePaint.color = ContextCompat.getColor(getContext(), R.color.legend_title)
+        textLegendNamePaint.textSize = 12 * metrics.density
+
+        textLegendNumberPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+        textLegendNumberPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
+        textLegendNumberPaint.style = Paint.Style.FILL_AND_STROKE
+        textLegendNumberPaint.textSize = 12 * metrics.density
 
         val cornerPathEffect10 = CornerPathEffect(20f)
         legendRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -105,7 +121,7 @@ class ChartLegend @JvmOverloads constructor(
         legendFillRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         legendFillRectPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         legendFillRectPaint.style = Paint.Style.FILL_AND_STROKE
-        legendFillRectPaint.color = ContextCompat.getColor(getContext(), R.color.bgrnd_legend)
+        legendFillRectPaint.color = ContextCompat.getColor(getContext(), R.color.legend_bgrnd)
         legendFillRectPaint.pathEffect = cornerPathEffect10
 
         pathCornerRect = Path()
@@ -141,6 +157,8 @@ class ChartLegend @JvmOverloads constructor(
         this.yShouldVisible.clear()
         this.yShouldVisible.putAll(yShouldVisible)
         isShow = false
+        lastLegendData = null
+        newLegendData = null
         invalidate()
     }
 
@@ -186,35 +204,14 @@ class ChartLegend @JvmOverloads constructor(
             if (!isShow) return
 
             nearestPoint?.let { point ->
+
+                if (newLegendData == null) return@apply
+
                 // vertical line
                 if (point.type == "line") {
                     this.drawLine(point.x, 0f, point.x, baseHeight, paintTopBottomLine)
                 } else if (point.type == "bar") {
 
-                }
-
-                // title of legend (date)
-                val textDate = dateFormat.format(point.xDate).capitalize()
-                textBlackPaint.getTextBounds(textDate, 0, textDate.length, bound)
-
-                // calculate of legend rect
-                var heightLegendBox = bound.height().toFloat() + pxLegendTextPaddingVertical * 2
-                var widthLegendBox = bound.width().toFloat() + pxLegendTextPaddingHorizontal * 2
-                for (index in 0 until point.ys.size) {
-                    if (!yShouldVisible[index]!!) continue
-                    val yValue = point.ys[index]
-                    val text = yValue.name + " " + yValue.yValues[point.xIndex].toString()
-                    textLegendPaint.getTextBounds(text, 0, text.length, bound)
-                    heightLegendBox += bound.height() + pxLegendTextPaddingVertical * 2
-                    widthLegendBox = Math.max(widthLegendBox, bound.width() + pxLegendTextPaddingHorizontal * 2)
-                }
-                // calculate start position of legend rect
-                var leftX = point.x - widthLegendBox + pxLegendTextPaddingHorizontal
-                if (leftX + widthLegendBox > baseWidth) {
-                    leftX = point.x - widthLegendBox - pxLegendTextPaddingHorizontal
-                }
-                if (leftX <= 0) {
-                    leftX = pxLegendTextPaddingHorizontal
                 }
 
                 if (point.type == "line") {
@@ -232,23 +229,48 @@ class ChartLegend @JvmOverloads constructor(
                     drawRect(point.x + BAR_SIZE / 2, 0f, baseWidth, baseHeight, shadowRectPaint)
                 }
 
-                var topX = 10f
                 // draw legend rect
-                this.drawRect(leftX, topX, leftX + widthLegendBox, topX + heightLegendBox, legendFillRectPaint)
-                this.drawRect(leftX, topX, leftX + widthLegendBox, topX + heightLegendBox, legendRectPaint)
-                topX += pxLegendTextPaddingVertical
-                textBlackPaint.getTextBounds(textDate, 0, textDate.length, bound)
-                this.drawText(textDate, leftX + pxLegendTextPaddingHorizontal, topX + bound.height(), textBlackPaint)
-                topX += bound.height()
+                this.drawRect(
+                    newLegendData!!.position.x,
+                    newLegendData!!.position.y,
+                    newLegendData!!.position.x + newLegendData!!.sizes.width,
+                    newLegendData!!.position.y + newLegendData!!.sizes.height,
+                    legendFillRectPaint
+                )
+                this.drawRect(
+                    newLegendData!!.position.x,
+                    newLegendData!!.position.y,
+                    newLegendData!!.position.x + newLegendData!!.sizes.width,
+                    newLegendData!!.position.y + newLegendData!!.sizes.height,
+                    legendRectPaint
+                )
+
+                // draw legend title (week/day month/year and shevron icon)
+                this.drawText(
+                    newLegendData!!.weekTextDate.text,
+                    newLegendData!!.weekTextDate.x,
+                    newLegendData!!.weekTextDate.y,
+                    textLegendTitlePaint
+                )
+                this.drawText(
+                    newLegendData!!.monthTextDate.text,
+                    newLegendData!!.monthTextDate.x,
+                    newLegendData!!.monthTextDate.y,
+                    textLegendTitlePaint
+                )
+
                 // draw legend text according to yvalue
-                for (index in 0 until point.ys.size) {
-                    if (!yShouldVisible[index]!!) continue
-                    val yValue = point.ys[index]
-                    textLegendPaint.color = yValue.color
-                    val text = yValue.name + " " + yValue.yValues[point.xIndex].toString()
-                    textLegendPaint.getTextBounds(textDate, 0, textDate.length, bound)
-                    topX += bound.height() + pxLegendTextPaddingVertical
-                    this.drawText(text, leftX + pxLegendTextPaddingHorizontal, topX, textLegendPaint)
+                for (index in 0 until newLegendData!!.names.size) {
+                    val name = newLegendData!!.names[index]
+                    val number = newLegendData!!.numbers[index]
+                    textLegendNumberPaint.color = number.color
+                    this.drawText(
+                        number.text,
+                        number.x,
+                        number.y,
+                        textLegendNumberPaint
+                    )
+                    this.drawText(name.text, name.x, name.y, textLegendNamePaint)
                 }
             }
         }
@@ -260,19 +282,124 @@ class ChartLegend @JvmOverloads constructor(
         return true
     }
 
+    private fun calculateLegendRect(point: Distance, heightText: Int, bound: Rect): LegendSizes {
+        var heightLegendBox = bound.height().toFloat() + pxLegendTextPadding * 2 + pxLegendTextLinePadding
+        val widthLegendBox = 200 * metrics.density //bound.width().toFloat() + pxLegendTextPaddingHorizontal * 2
+        // TODO point.ys.filter{}.count() ??
+        for (index in 0 until point.ys.size) {
+            if (!yShouldVisible[index]!!) continue
+            heightLegendBox += heightText + if (index == point.ys.size - 1) 0f else pxLegendTextLinePadding
+        }
+        return LegendSizes(widthLegendBox, heightLegendBox)
+    }
+
+    private fun calculateLegendRectPosition(point: Distance, widthLegendBox: Float): LegendPosition {
+        var leftX = 10f
+        if (point.type == "line") {
+            leftX = point.x - widthLegendBox / 2
+            if (leftX + widthLegendBox > baseWidth) {
+                leftX = baseWidth - widthLegendBox - 10f
+            }
+            if (leftX <= 0) {
+                leftX = 10f
+            }
+        } else if (point.type == "bar") {
+            leftX = point.x - widthLegendBox - BAR_SIZE - BAR_SIZE / 2
+            if (leftX <= 0) {
+                leftX = point.x + BAR_SIZE + BAR_SIZE / 2
+            }
+            if (leftX + widthLegendBox > baseWidth) {
+                leftX = baseWidth - widthLegendBox - 10f
+            }
+        }
+        return LegendPosition(leftX, 10f)
+    }
+
     private fun showLegend(x: Float, y: Float) {
         nearestPoint = findMinimalDistancePoint(x, y)
         isShow = nearestPoint != null
+
+        val legendData = calculateLegendData(nearestPoint)
+        if (lastLegendData != null) {
+            newLegendData = legendData
+        } else {
+            lastLegendData = legendData
+            newLegendData = legendData
+        }
+
         invalidate()
     }
 
-    private fun findMinimalDistancePoint(x: Float, y: Float): Distances? {
-        val distances = mutableListOf<Distances>()
+    private fun calculateLegendData(point: Distance?): LegendData? {
+        if (point == null) return null
+
+        // title of legend (week/day and month/year separatly)
+        val weekTextDate = weekDateFormat.format(point.xDate).capitalize()
+        textLegendTitlePaint.getTextBounds(weekTextDate, 0, weekTextDate.length, boundTitle)
+        val monthTextDate = monthDateFormat.format(point.xDate).capitalize()
+        textLegendTitlePaint.getTextBounds(monthTextDate, 0, monthTextDate.length, boundTitle)
+
+        // height of legend's line
+        val textLine0 = point.ys[0].yValues[point.xIndex].toString()
+        textLegendTitlePaint.getTextBounds(textLine0, 0, textLine0.length, boundLine)
+        val heightText = boundLine.height()
+
+        // calculate of legend rect
+        val sizes = calculateLegendRect(point, heightText, boundTitle)
+        // calculate start position of legend rect
+        val position = calculateLegendRectPosition(point, sizes.width)
+
+        // calculate legend title (week/day month/year and shevron icon)
+        var topTextY = position.y + pxLegendTextPadding + heightText
+        textLegendTitlePaint.getTextBounds(weekTextDate, 0, weekTextDate.length, boundTitle)
+        val xWeekTextDate = position.x + pxLegendTextPadding
+        val yWeekTextDate = topTextY
+        val xMonthTextDate = position.x + pxLegendTextPadding + boundTitle.width() + 20
+        val yMonthTextDate = topTextY
+
+        // calculate names and numbers positions
+        val names = mutableListOf<LegendText>()
+        val numbers = mutableListOf<LegendText>()
+
+        topTextY += pxLegendTextLinePadding
+        // draw legend text according to yvalue
+        for (index in 0 until point.ys.size) {
+            if (!yShouldVisible[index]!!) continue
+            val yValue = point.ys[index]
+            textLegendNumberPaint.color = yValue.color
+            topTextY += heightText //+ pxLegendTextLinePadding
+            val numberText = yValue.yValues[point.xIndex].toString()
+            textLegendNumberPaint.getTextBounds(numberText, 0, numberText.length, boundLine)
+            numbers.add(
+                LegendText(
+                    numberText,
+                    position.x + sizes.width - pxLegendTextPadding - boundLine.width(),
+                    topTextY,
+                    yValue.color
+                )
+            )
+            names.add(LegendText(yValue.name, position.x + pxLegendTextPadding, topTextY))
+            topTextY += pxLegendTextLinePadding
+        }
+
+        return LegendData(
+            sizes,
+            position,
+            boundTitle,
+            LegendText(weekTextDate, xWeekTextDate, yWeekTextDate),
+            LegendText(monthTextDate, xMonthTextDate, yMonthTextDate),
+            names,
+            numbers
+        )
+    }
+
+    private fun findMinimalDistancePoint(x: Float, y: Float): Distance? {
+        val distances = mutableListOf<Distance>()
         for (chartLine in chartLines.filter { yShouldVisible[it.yIndex]!! }) {
 
             if (chartLine.type == "line") {
                 distances.add(
-                    Distances(
+                    Distance(
                         Math.abs(chartLine.x - x),
                         Math.abs(chartLine.y - y),
                         chartLine.xDate,
@@ -284,7 +411,7 @@ class ChartLegend @JvmOverloads constructor(
                 )
             } else if (chartLine.type == "bar") {
                 distances.add(
-                    Distances(
+                    Distance(
                         Math.abs(chartLine.x - BAR_SIZE / 2 - x),
                         Math.abs(chartLine.y - y),
                         chartLine.xDate,
@@ -295,7 +422,7 @@ class ChartLegend @JvmOverloads constructor(
                     )
                 )
                 distances.add(
-                    Distances(
+                    Distance(
                         Math.abs(chartLine.x + BAR_SIZE / 2 - x),
                         Math.abs(chartLine.y - y),
                         chartLine.xDate,
@@ -325,7 +452,7 @@ class ChartLegend @JvmOverloads constructor(
         }
     }
 
-    data class Distances(
+    data class Distance(
         val distanceX: Float,
         val distanceY: Float,
         val xDate: Date,
@@ -334,4 +461,32 @@ class ChartLegend @JvmOverloads constructor(
         val ys: List<YValue>,
         val type: String
     )
+
+    data class LegendSizes(
+        val width: Float,
+        val height: Float
+    )
+
+    data class LegendPosition(
+        val x: Float,
+        val y: Float
+    )
+
+    data class LegendText(
+        val text: String,
+        val x: Float,
+        val y: Float,
+        val color: Int = 0
+    )
+
+    data class LegendData(
+        val sizes: LegendSizes,
+        val position: LegendPosition,
+        val boundTitle: Rect,
+        val weekTextDate: LegendText,
+        val monthTextDate: LegendText,
+        val names: List<LegendText>,
+        val numbers: List<LegendText>
+    )
+
 }

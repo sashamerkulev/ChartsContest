@@ -13,7 +13,7 @@
             android:paddingStart="16dp"
             android:paddingEnd="16dp"
             android:paddingTop="16dp"
-            android:background="@color/bgrnd_legend"
+            android:background="@color/legend_bgrnd"
             >
 
         <TextView

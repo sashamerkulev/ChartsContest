@@ -224,6 +224,31 @@ open class BaseChart @JvmOverloads constructor(
         const val MINIMAL_DISTANCE = 50
         const val BAR_SIZE = 10
         const val MAGIC = 1.1f
+
+        fun reduction(value: Long): String {
+            var reductionValue = value
+            if (value > 10000000) {
+                return (value / 1000000).toString()+"M"
+            }
+            if (value > 10000) {
+                reductionValue -= value % 1000
+                return (reductionValue + 1000).toString()
+            }
+            if (value > 1000) {
+                reductionValue -= value % 100
+                return (reductionValue + 100).toString()
+            }
+            if (value > 100) {
+                reductionValue -= value % 10
+                return (reductionValue + 10).toString()
+            }
+            if (value > 10) {
+                reductionValue -= value % 10
+                return (reductionValue + 10).toString()
+            }
+            return reductionValue.toString()
+        }
+
     }
 
 }

@@ -277,25 +277,4 @@ open class Chart @JvmOverloads constructor(
         }
     }
 
-    private fun reduction(value: Long): String {
-        var reductionValue = value
-        if (value > 10000) {
-            reductionValue -= value % 1000
-            return (reductionValue + 1000).toString()
-        }
-        if (value > 1000) {
-            reductionValue -= value % 100
-            return (reductionValue + 100).toString()
-        }
-        if (value > 100) {
-            reductionValue -= value % 10
-            return (reductionValue + 10).toString()
-        }
-        if (value > 10) {
-            reductionValue -= value % 10
-            return (reductionValue + 10).toString()
-        }
-        return reductionValue.toString()
-    }
-
 }

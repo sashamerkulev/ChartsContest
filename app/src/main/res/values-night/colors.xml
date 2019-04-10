@@ -7,7 +7,6 @@
     <color name="bgrnd">#1B2433</color>
 
     <color name="black">#222222</color>
-    <color name="legend_title">#ffffff</color>
     <color name="white">#ffffff</color>
 
 
@@ -20,8 +19,9 @@
     <color name="border">#1C2533</color>
     <color name="chart_line">#3A4451</color>
 
-    <color name="legend">#1C2533</color>
-    <color name="bgrnd_legend">#242F3E</color>
+    <color name="legend_bgrnd">#242F3E</color>
     <color name="legend_xy">#78B7D3</color>
+    <color name="legend_chevron">#767C85</color>
+    <color name="legend_title">#ffffff</color>
 
 </resources>
