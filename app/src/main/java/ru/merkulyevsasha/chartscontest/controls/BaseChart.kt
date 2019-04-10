@@ -203,8 +203,8 @@ open class BaseChart @JvmOverloads constructor(
         val xDate: Date,
         val xDays: Long,
         val yValue: Long,
-        val x: Float,
-        val y: Float,
+        var x: Float,
+        var y: Float,
         val paint: Paint,
         val type: String,
         val ys: List<YValue>
