@@ -100,9 +100,10 @@ open class BaseChart @JvmOverloads constructor(
 
             for (index in 0 until chartLines.size) {
                 val chartLine = chartLines[index]
+                if (yShouldVisible[chartLine.yIndex] == false) continue
                 when (chartLine.type) {
                     "line" -> {
-                        if (chartLine.xIndex > 0 && yShouldVisible[chartLine.yIndex] == true) {
+                        if (chartLine.xIndex > 0) {
                             val prev = chartLines.subList(0, index)
                                 .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
                             if (prev.isNotEmpty()) {
@@ -113,18 +114,24 @@ open class BaseChart @JvmOverloads constructor(
                         }
                     }
                     "bar" -> {
-                        if (yShouldVisible[chartLine.yIndex] == true) {
-                            drawRect(
-                                chartLine.x - BAR_SIZE / 2,
-                                chartLine.y,
-                                chartLine.x + BAR_SIZE / 2,
-                                baseHeight,
-                                chartLine.paint
-                            )
-                        }
+                        drawRect(
+                            chartLine.x - BAR_SIZE / 2,
+                            chartLine.y,
+                            chartLine.x + BAR_SIZE / 2,
+                            baseHeight,
+                            chartLine.paint
+                        )
                     }
                     "area" -> {
-
+                        if (chartLine.xIndex > 0) {
+                            val prev = chartLines.subList(0, index)
+                                .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
+                            if (prev.isNotEmpty()) {
+                                val x1 = prev.last().x
+                                val y1 = prev.last().y
+                                drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
+                            }
+                        }
                     }
                 }
             }
@@ -228,7 +235,7 @@ open class BaseChart @JvmOverloads constructor(
         fun reduction(value: Long): String {
             var reductionValue = value
             if (value > 10000000) {
-                return (value / 1000000).toString()+"M"
+                return (value / 1000000).toString() + "M"
             }
             if (value > 10000) {
                 reductionValue -= value % 1000

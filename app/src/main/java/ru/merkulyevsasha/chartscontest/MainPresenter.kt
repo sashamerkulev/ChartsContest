@@ -10,7 +10,7 @@ class MainPresenter(private val sourceDataConverter: SourceDataConverter) {
     private val chartNames = HashMap<Int, String>()
     init {
         chartNames.put(0, "Followers")
-        chartNames.put(1, "Views/Shares")
+        chartNames.put(1, "Interactions")
         chartNames.put(2, "Fruits")
         chartNames.put(3, "Views")
         chartNames.put(4, "Fruits again")
