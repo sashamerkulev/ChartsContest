@@ -5,6 +5,8 @@ import java.util.*
 data class ChartData(
     val title: String,
     val yScaled: Boolean,
+    val percentage: Boolean,
+    val stacked: Boolean,
     val xValues: List<Date>,
     val xValuesInDays: List<Long>,
     val ys: List<YValue>
@@ -30,7 +32,5 @@ data class YValue(
     val yValues: List<Long>,
     val type: String,
     val name: String,
-    val color: Int,
-    val percentage: Boolean,
-    val stacked: Boolean
+    val color: Int
 )
