@@ -2,7 +2,10 @@ package ru.merkulyevsasha.chartscontest.controls
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.*
+import android.graphics.Canvas
+import android.graphics.CornerPathEffect
+import android.graphics.Paint
+import android.graphics.Rect
 import android.support.v4.content.ContextCompat
 import android.support.v4.view.GestureDetectorCompat
 import android.util.AttributeSet
@@ -10,10 +13,11 @@ import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
-import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.controls.BaseChart.Companion.BAR_SIZE
 import ru.merkulyevsasha.chartscontest.controls.BaseChart.Companion.CIRCLE_CHART_RADIUS
 import ru.merkulyevsasha.chartscontest.models.YValue
+import java.text.DecimalFormat
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -50,7 +54,6 @@ class ChartLegend @JvmOverloads constructor(
     private val legendRectPaint: Paint
     private val legendFillRectPaint: Paint
     private val shadowRectPaint: Paint
-    private val pathCornerRect: Path
 
     private val boundLine = Rect()
     private val boundTitle = Rect()
@@ -81,29 +84,29 @@ class ChartLegend @JvmOverloads constructor(
 
         paintTopBottomLine = Paint(Paint.ANTI_ALIAS_FLAG)
         paintTopBottomLine.style = Paint.Style.STROKE
-        paintTopBottomLine.color = ContextCompat.getColor(context, R.color.chart_line)
+        paintTopBottomLine.color = ContextCompat.getColor(context, ru.merkulyevsasha.chartscontest.R.color.chart_line)
         paintTopBottomLine.strokeWidth = BaseChart.CIRCLE_CHART_STOKE_WIDTH
 
         paintCircle = Paint(Paint.ANTI_ALIAS_FLAG)
         paintCircle.strokeWidth = BaseChart.CIRCLE_CHART_STOKE_WIDTH
         paintCircle.style = Paint.Style.STROKE
-        paintCircle.color = ContextCompat.getColor(getContext(), R.color.border)
+        paintCircle.color = ContextCompat.getColor(getContext(), ru.merkulyevsasha.chartscontest.R.color.border)
 
         paintFillCircle = Paint(Paint.ANTI_ALIAS_FLAG)
         paintFillCircle.strokeWidth = BaseChart.CIRCLE_CHART_STOKE_WIDTH
         paintFillCircle.style = Paint.Style.FILL_AND_STROKE
-        paintFillCircle.color = ContextCompat.getColor(getContext(), R.color.legend_bgrnd)
+        paintFillCircle.color = ContextCompat.getColor(getContext(), ru.merkulyevsasha.chartscontest.R.color.legend_bgrnd)
 
         textLegendTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
         textLegendTitlePaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         textLegendTitlePaint.style = Paint.Style.FILL_AND_STROKE
-        textLegendTitlePaint.color = ContextCompat.getColor(getContext(), R.color.legend_title)
+        textLegendTitlePaint.color = ContextCompat.getColor(getContext(), ru.merkulyevsasha.chartscontest.R.color.legend_title)
         textLegendTitlePaint.textSize = 14 * metrics.density
 
         textLegendNamePaint = Paint(Paint.ANTI_ALIAS_FLAG)
         textLegendNamePaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         textLegendNamePaint.style = Paint.Style.FILL_AND_STROKE
-        textLegendNamePaint.color = ContextCompat.getColor(getContext(), R.color.legend_title)
+        textLegendNamePaint.color = ContextCompat.getColor(getContext(), ru.merkulyevsasha.chartscontest.R.color.legend_title)
         textLegendNamePaint.textSize = 12 * metrics.density
 
         textLegendNumberPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -115,21 +118,22 @@ class ChartLegend @JvmOverloads constructor(
         legendRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         legendRectPaint.strokeWidth = BaseChart.LEGEND_RECT_STOKE_WIDTH
         legendRectPaint.style = Paint.Style.STROKE
-        legendRectPaint.color = ContextCompat.getColor(getContext(), R.color.border)
+        legendRectPaint.color = ContextCompat.getColor(getContext(), ru.merkulyevsasha.chartscontest.R.color.border)
         legendRectPaint.pathEffect = cornerPathEffect10
+        legendRectPaint.setShadowLayer(30f, 10f, 10f, ContextCompat.getColor(context, ru.merkulyevsasha.chartscontest.R.color.chart_line))
 
         legendFillRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         legendFillRectPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         legendFillRectPaint.style = Paint.Style.FILL_AND_STROKE
-        legendFillRectPaint.color = ContextCompat.getColor(getContext(), R.color.legend_bgrnd)
+        legendFillRectPaint.color = ContextCompat.getColor(getContext(), ru.merkulyevsasha.chartscontest.R.color.legend_bgrnd)
         legendFillRectPaint.pathEffect = cornerPathEffect10
-
-        pathCornerRect = Path()
 
         shadowRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         shadowRectPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         shadowRectPaint.style = Paint.Style.FILL_AND_STROKE
-        shadowRectPaint.color = ContextCompat.getColor(getContext(), R.color.white_shadow)
+        shadowRectPaint.color = ContextCompat.getColor(getContext(), ru.merkulyevsasha.chartscontest.R.color.white_shadow)
+
+        setLayerType(View.LAYER_TYPE_SOFTWARE, null)
     }
 
     fun onDataChanged(
@@ -294,6 +298,14 @@ class ChartLegend @JvmOverloads constructor(
         return true
     }
 
+    private fun formatNumber(number: Long): String {
+        val formatter = NumberFormat.getInstance(Locale.US) as DecimalFormat
+        val symbols = formatter.decimalFormatSymbols
+        symbols.groupingSeparator = ' '
+        formatter.decimalFormatSymbols = symbols
+        return formatter.format(number)
+    }
+
     private fun calculateLegendRect(point: Distance, heightText: Int, bound: Rect): LegendSizes {
         var heightLegendBox = bound.height().toFloat() + pxLegendTextPadding * 2 + pxLegendTextLinePadding
         val widthLegendBox = 200 * metrics.density //bound.width().toFloat() + pxLegendTextPaddingHorizontal * 2
@@ -380,7 +392,7 @@ class ChartLegend @JvmOverloads constructor(
             val yValue = point.ys[index]
             textLegendNumberPaint.color = yValue.color
             topTextY += heightText //+ pxLegendTextLinePadding
-            val numberText = yValue.yValues[point.xIndex].toString()
+            val numberText = formatNumber(yValue.yValues[point.xIndex])
             textLegendNumberPaint.getTextBounds(numberText, 0, numberText.length, boundLine)
             numbers.add(
                 LegendText(

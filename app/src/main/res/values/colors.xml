@@ -10,7 +10,7 @@
     <color name="white">#ffffff</color>
 
     <color name="white_transparency">#11fefefe</color>
-    <color name="white_shadow">#99ffffff</color>
+    <color name="white_shadow">#77EDF5FB</color>
 
     <color name="bgrnd_out_slider">#77EDF5FB</color>
     <color name="border_slider">#B9CFDF</color>

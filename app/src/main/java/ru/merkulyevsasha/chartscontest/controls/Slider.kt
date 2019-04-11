@@ -217,6 +217,13 @@ class Slider @JvmOverloads constructor(
                     distanceScrollX = 0f
                     stopIndex = maxXIndex
                 }
+                if (stopIndex - startIndex < parts) {
+                    if (startIndex == 0) {
+                        stopIndex = startIndex + parts
+                    } else if (stopIndex == maxXIndex) {
+                        startIndex = stopIndex - parts
+                    }
+                }
                 onActionIndicesChange?.onActionIndicesChanged(startIndex, stopIndex)
                 invalidate()
             }

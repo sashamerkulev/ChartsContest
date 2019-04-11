@@ -116,13 +116,14 @@ open class BaseChart @JvmOverloads constructor(
                 for (xIndex in groupedByX.keys) {
                     val xIndexes = groupedByX[xIndex]!!
                     val xSortedByYValue = xIndexes.sortedByDescending { it.yValue }
-                    val chartLine = xSortedByYValue.first()
+                    val chartLine = xSortedByYValue.first{ yShouldVisible[it.yIndex]!! }
                     if (yShouldVisible[chartLine.yIndex] == true) {
                         val type = chartLine.type
                         when (type) {
                             "bar" -> {
                                 for (yIndex in 0 until xSortedByYValue.size) {
                                     val drawChartLine = xSortedByYValue[yIndex]
+                                    if (!yShouldVisible[drawChartLine.yIndex]!!) continue
                                     if (yIndex == 0) {
                                         drawRect(
                                             drawChartLine.x - BAR_SIZE / 2,
@@ -142,6 +143,17 @@ open class BaseChart @JvmOverloads constructor(
                                         )
                                     }
                                 }
+                            }
+                            "area" -> {
+//                                if (chartLine.xIndex > 0) {
+//                                    val prev = chartLines.subList(0, index)
+//                                        .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
+//                                    if (prev.isNotEmpty()) {
+//                                        val x1 = prev.last().x
+//                                        val y1 = prev.last().y
+//                                        drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
+//                                    }
+//                                }
                             }
                         }
                     }
@@ -174,15 +186,6 @@ open class BaseChart @JvmOverloads constructor(
                         )
                     }
                     "area" -> {
-                        if (chartLine.xIndex > 0) {
-                            val prev = chartLines.subList(0, index)
-                                .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
-                            if (prev.isNotEmpty()) {
-                                val x1 = prev.last().x
-                                val y1 = prev.last().y
-                                drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
-                            }
-                        }
                     }
                 }
             }

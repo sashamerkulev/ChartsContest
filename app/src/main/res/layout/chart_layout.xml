@@ -39,7 +39,7 @@
         <ru.merkulyevsasha.chartscontest.controls.Chart
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="220dp"
                 android:layout_below="@+id/chartTitle"
                 android:layout_marginTop="8dp"
                 />
@@ -47,7 +47,7 @@
         <ru.merkulyevsasha.chartscontest.controls.ChartLegend
                 android:id="@+id/chartLegend"
                 android:layout_width="match_parent"
-                android:layout_height="200dp"
+                android:layout_height="220dp"
                 android:layout_below="@+id/chartTitle"
                 android:layout_marginTop="8dp"
                 />
