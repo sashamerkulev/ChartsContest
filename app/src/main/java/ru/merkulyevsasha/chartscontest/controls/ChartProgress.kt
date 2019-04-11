@@ -17,10 +17,7 @@ class ChartProgress @JvmOverloads constructor(
     }
 
     override fun onMeasureEnd() {
-        for (index in 0 until yMinMaxValues.size) {
-            val yScale = baseHeight / (yMinMaxValues[index].max - yMinMaxValues[index].min).toFloat()
-            yScales.add(yScale)
-        }
+        calculateYScales()
         xScale = baseWidth / (maxX - minX).toFloat()
         chartLines.clear()
         chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, yMinMaxValues))

@@ -46,6 +46,8 @@ class Slider @JvmOverloads constructor(
     private val paintLeftRightBorder: Paint
     private val paintTopBottomBorder: Paint
 
+    private var maxXIndex = 0
+
     init {
         val cornerPathEffect20 = CornerPathEffect(20f)
 
@@ -79,8 +81,8 @@ class Slider @JvmOverloads constructor(
 
     override fun setData(chartData: ChartData) {
         super.setData(chartData)
-        parts = chartData.xValuesInDays.size / 5
-
+        maxXIndex = chartData.xValuesInDays.size
+        parts = maxXIndex / 5
         initEndIndices()
     }
 
@@ -90,10 +92,7 @@ class Slider @JvmOverloads constructor(
     }
 
     override fun onMeasureEnd() {
-        for (index in 0 until yMinMaxValues.size) {
-            val yScale = baseHeight / (yMinMaxValues[index].max - yMinMaxValues[index].min).toFloat()
-            yScales.add(yScale)
-        }
+        calculateYScales()
         xScale = baseWidth / (maxX - minX).toFloat()
         y2 = baseHeight
     }
@@ -174,8 +173,8 @@ class Slider @JvmOverloads constructor(
     private fun isRightBorderRange() = x2 - LEFT_RIGHT_BORDER_WIDTH..x2 + LEFT_RIGHT_BORDER_WIDTH
 
     private fun initEndIndices() {
-        startIndex = chartData.xValues.size - parts
-        stopIndex = chartData.xValues.size
+        startIndex = maxXIndex - parts
+        stopIndex = maxXIndex
         distanceScrollX = 0f
         distanceLeftBorderScrollX = 0f
     }
@@ -214,9 +213,9 @@ class Slider @JvmOverloads constructor(
                     distanceScrollX = 0f
                     startIndex = 0
                 }
-                if (stopIndex > chartData.xValuesInDays.size) {
+                if (stopIndex > maxXIndex) {
                     distanceScrollX = 0f
-                    stopIndex = chartData.xValuesInDays.size
+                    stopIndex = maxXIndex
                 }
                 onActionIndicesChange?.onActionIndicesChanged(startIndex, stopIndex)
                 invalidate()
@@ -257,9 +256,9 @@ class Slider @JvmOverloads constructor(
                     stopIndex += Math.abs((distanceRightBorderScrollX / deltaMagic)).toInt()
                     distanceRightBorderScrollX = 0f
                 }
-                if (stopIndex > chartData.xValuesInDays.size) {
+                if (stopIndex > maxXIndex) {
                     distanceRightBorderScrollX = 0f
-                    stopIndex = chartData.xValuesInDays.size
+                    stopIndex = maxXIndex
                 }
                 if (stopIndex - startIndex < parts) {
                     stopIndex = startIndex + parts

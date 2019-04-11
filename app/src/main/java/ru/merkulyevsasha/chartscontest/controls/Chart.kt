@@ -210,10 +210,7 @@ open class Chart @JvmOverloads constructor(
         heightRow = baseHeight / ROWS.toFloat()
 
         updateIndexes()
-        for (index in 0 until yMinMaxValues.size) {
-            val yScale = baseHeight / (yMinMaxValues[index].max - yMinMaxValues[index].min).toFloat()
-            yScales.add(yScale)
-        }
+        calculateYScales()
     }
 
     private fun updateIndexes() {
