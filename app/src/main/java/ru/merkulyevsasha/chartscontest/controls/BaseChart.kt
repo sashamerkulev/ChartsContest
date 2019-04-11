@@ -113,35 +113,33 @@ open class BaseChart @JvmOverloads constructor(
 
             if (chartData.stacked) {
                 val groupedByX = chartLines.groupBy { it.xIndex }
-                for (index in 0 until groupedByX.size) {
-                    val xIndexes = groupedByX[index]
-                    xIndexes?.apply {
-                        val xSortedByYValue = this.sortedByDescending { it.yValue }
-                        val chartLine = xSortedByYValue.first()
-                        if (yShouldVisible[chartLine.yIndex] == true) {
-                            val type = chartLine.type
-                            when (type) {
-                                "bar" -> {
-                                    for (yIndex in 0 until xSortedByYValue.size) {
-                                        val drawChartLine = xSortedByYValue[yIndex]
-                                        if (yIndex == 0) {
-                                            drawRect(
-                                                drawChartLine.x - BAR_SIZE / 2,
-                                                drawChartLine.y,
-                                                drawChartLine.x + BAR_SIZE / 2,
-                                                baseHeight,
-                                                drawChartLine.paint
-                                            )
-                                        } else {
-                                            val diff = baseHeight - drawChartLine.y
-                                            drawRect(
-                                                drawChartLine.x - BAR_SIZE / 2,
-                                                chartLine.y,
-                                                drawChartLine.x + BAR_SIZE / 2,
-                                                chartLine.y + diff,
-                                                drawChartLine.paint
-                                            )
-                                        }
+                for (xIndex in groupedByX.keys) {
+                    val xIndexes = groupedByX[xIndex]!!
+                    val xSortedByYValue = xIndexes.sortedByDescending { it.yValue }
+                    val chartLine = xSortedByYValue.first()
+                    if (yShouldVisible[chartLine.yIndex] == true) {
+                        val type = chartLine.type
+                        when (type) {
+                            "bar" -> {
+                                for (yIndex in 0 until xSortedByYValue.size) {
+                                    val drawChartLine = xSortedByYValue[yIndex]
+                                    if (yIndex == 0) {
+                                        drawRect(
+                                            drawChartLine.x - BAR_SIZE / 2,
+                                            drawChartLine.y,
+                                            drawChartLine.x + BAR_SIZE / 2,
+                                            baseHeight,
+                                            drawChartLine.paint
+                                        )
+                                    } else {
+                                        val diff = baseHeight - drawChartLine.y
+                                        drawRect(
+                                            drawChartLine.x - BAR_SIZE / 2,
+                                            chartLine.y,
+                                            drawChartLine.x + BAR_SIZE / 2,
+                                            chartLine.y + diff,
+                                            drawChartLine.paint
+                                        )
                                     }
                                 }
                             }
