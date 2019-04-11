@@ -3,8 +3,12 @@ package ru.merkulyevsasha.chartscontest.controls
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
+import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
+import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.models.YValue
 import java.util.*
@@ -33,7 +37,8 @@ open class BaseChart @JvmOverloads constructor(
     internal val yScales = mutableListOf<Float>()
 
     internal val stackedRects = mutableListOf<StackedRect>()
-    internal var stackedType: String = ""
+    internal var stackedType = ""
+    internal var paths = mutableMapOf<Int, Path>()
 
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
@@ -115,55 +120,9 @@ open class BaseChart @JvmOverloads constructor(
         canvas?.apply {
 
             if (chartData.stacked) {
-//                val groupedByX = chartLines.groupBy { it.xIndex }
-//                for (xIndex in groupedByX.keys) {
-//                    val xIndexes = groupedByX[xIndex]!!
-//                    val xSortedByYValue = xIndexes.sortedByDescending { it.yValue }
-//                    val chartLine = xSortedByYValue.first { yShouldVisible[it.yIndex]!! }
-//                    if (yShouldVisible[chartLine.yIndex] == true) {
-//                        val type = chartLine.type
-//                        when (type) {
-//                            "bar" -> {
-//                                for (yIndex in 0 until xSortedByYValue.size) {
-//                                    val drawChartLine = xSortedByYValue[yIndex]
-//                                    if (!yShouldVisible[drawChartLine.yIndex]!!) continue
-//                                    if (yIndex == 0) {
-//                                        drawRect(
-//                                            drawChartLine.x - BAR_SIZE / 2,
-//                                            drawChartLine.y,
-//                                            drawChartLine.x + BAR_SIZE / 2,
-//                                            baseHeight,
-//                                            drawChartLine.paint
-//                                        )
-//                                    } else {
-//                                        val diff = baseHeight - drawChartLine.y
-//                                        drawRect(
-//                                            drawChartLine.x - BAR_SIZE / 2,
-//                                            chartLine.y,
-//                                            drawChartLine.x + BAR_SIZE / 2,
-//                                            chartLine.y + diff,
-//                                            drawChartLine.paint
-//                                        )
-//                                    }
-//                                }
-//                            }
-//                            "area" -> {
-////                                if (chartLine.xIndex > 0) {
-////                                    val prev = chartLines.subList(0, index)
-////                                        .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
-////                                    if (prev.isNotEmpty()) {
-////                                        val x1 = prev.last().x
-////                                        val y1 = prev.last().y
-////                                        drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
-////                                    }
-////                                }
-//                            }
-//                        }
-//                    }
-//                }
-                for (stackedRect in stackedRects) {
-                    when (stackedType) {
-                        "bar" -> {
+                when (stackedType) {
+                    "bar" -> {
+                        for (stackedRect in stackedRects) {
                             drawRect(
                                 stackedRect.x1,
                                 stackedRect.y1,
@@ -172,23 +131,46 @@ open class BaseChart @JvmOverloads constructor(
                                 stackedRect.paint
                             )
                         }
+                        return@apply
+                    }
+                    "area" -> {
+                        Log.d("area", "asa")
+
+                        paths.keys.forEachIndexed { index, yIndex ->
+                            val path = paths[yIndex]!!
+                            if (index == 0) {
+//                                path.lineTo(baseWidth, baseHeight)
+//                                path.lineTo(0f, baseHeight)
+//                                path.close()
+                            } else if (index == paths.keys.size - 1) {
+//                                path.lineTo(baseWidth, 0f)
+//                                path.lineTo(0f, 0f)
+//                                path.close()
+                            } else {
+
+                            }
+                            val paint = paints[chartData.ys[index].name]!!
+                            drawPath(path, paint)
+                        }
+
                     }
                 }
-
-                return@apply
             }
 
             for (index in 0 until chartLines.size) {
                 val chartLine = chartLines[index]
                 if (yShouldVisible[chartLine.yIndex] == false) continue
                 when (chartLine.type) {
-                    "line" -> {
+                    "area", "line" -> {
                         if (chartLine.xIndex > 0) {
                             val prev = chartLines.subList(0, index)
                                 .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
                             if (prev.isNotEmpty()) {
                                 val x1 = prev.last().x
                                 val y1 = prev.last().y
+
+                                chartLine.paint.color = ContextCompat.getColor(context, R.color.legend_xy)
+
                                 drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
                             }
                         }
@@ -270,49 +252,83 @@ open class BaseChart @JvmOverloads constructor(
         if (chartData.stacked) {
             stackedRects.clear()
             val groupedByX = result.groupBy { it.xIndex }
+            paths.clear()
             for (xIndex in groupedByX.keys) {
                 val xIndexes = groupedByX[xIndex]!!
-                val xSortedByYValue = xIndexes.sortedByDescending { it.yValue }
-                val chartLine = xSortedByYValue.first { yShouldVisible[it.yIndex]!! }
-                if (yShouldVisible[chartLine.yIndex] == true) {
-                    stackedType = chartLine.type
-                    when (stackedType) {
-                        "bar" -> {
-                            for (yIndex in 0 until xSortedByYValue.size) {
-                                val drawChartLine = xSortedByYValue[yIndex]
-                                if (!yShouldVisible[drawChartLine.yIndex]!!) continue
-                                if (yIndex == 0) {
-                                    stackedRects.add(
-                                        StackedRect(
-                                            drawChartLine.x - BAR_SIZE / 2,
-                                            drawChartLine.y,
-                                            drawChartLine.x + BAR_SIZE / 2,
-                                            baseHeight,
-                                            drawChartLine.paint
-                                        )
+                val xFilteredByVisibility = xIndexes.filter { yShouldVisible[it.yIndex]!! }
+                val chartLine = xFilteredByVisibility.first()
+                stackedType = chartLine.type
+                when (stackedType) {
+                    "bar" -> {
+                        val xSortedByYValue = xFilteredByVisibility.sortedByDescending { it.yValue }
+                        for (yIndex in 0 until xSortedByYValue.size) {
+                            val drawChartLine = xSortedByYValue[yIndex]
+                            if (yIndex == 0) {
+                                stackedRects.add(
+                                    StackedRect(
+                                        drawChartLine.x - BAR_SIZE / 2,
+                                        drawChartLine.y,
+                                        drawChartLine.x + BAR_SIZE / 2,
+                                        baseHeight,
+                                        drawChartLine.paint
                                     )
-                                } else {
-                                    val diff = baseHeight - drawChartLine.y
-                                    stackedRects.add(
-                                        StackedRect(
-                                            drawChartLine.x - BAR_SIZE / 2,
-                                            chartLine.y,
-                                            drawChartLine.x + BAR_SIZE / 2,
-                                            chartLine.y + diff,
-                                            drawChartLine.paint
-                                        )
+                                )
+                            } else {
+                                val diff = baseHeight - drawChartLine.y
+                                stackedRects.add(
+                                    StackedRect(
+                                        drawChartLine.x - BAR_SIZE / 2,
+                                        chartLine.y,
+                                        drawChartLine.x + BAR_SIZE / 2,
+                                        chartLine.y + diff,
+                                        drawChartLine.paint
                                     )
-                                }
+                                )
                             }
                         }
-                        "area" -> {
+                    }
+                    "area" -> {
+                        val groupedByY = result.groupBy { it.yIndex }
+                        val sumByYIndex = groupedByY.mapValues {
+                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.sum()
+                        }
+                        val minByYIndex = groupedByY.mapValues {
+                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.min()
+                        }
+                        val maxByYIndex = groupedByY.mapValues {
+                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.max()
+                        }
+                        val countByYIndex = groupedByY.mapValues {
+                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.count()
+                        }
+                        val avgByYIndex = sumByYIndex.mapValues { sumByYIndex[it.key]!! / countByYIndex[it.key]!! }
+                        val sum = avgByYIndex.map { it.value }.sum()
+                        val prc =
+                            avgByYIndex.mapValues { it.value * 100 / sum }
+                        //val sortedPrc = prc.toList().sortedByDescending { it.second }.toMap()
+
+                        for (drawChartLine in xFilteredByVisibility) {
+                            val yIndex = drawChartLine.yIndex
+
+                            val scale = baseHeight / (maxByYIndex[yIndex]!! - minByYIndex[yIndex]!!).toFloat()
+                            val y = baseHeight - (drawChartLine.yValue - minByYIndex[yIndex]!!) * scale
+
+                            if (!paths.containsKey(drawChartLine.yIndex)) {
+                                val path = Path()
+                                path.moveTo(
+                                    drawChartLine.x,
+                                    y
+                                )
+                                paths.put(drawChartLine.yIndex, path)
+                                continue
+                            }
+                            val path = paths[drawChartLine.yIndex]!!
+                            path.lineTo(drawChartLine.x, y)
                         }
                     }
                 }
             }
         }
-
-
         return result
     }
 
