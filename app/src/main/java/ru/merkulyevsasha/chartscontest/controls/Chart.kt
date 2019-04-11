@@ -6,6 +6,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import ru.merkulyevsasha.chartscontest.R
@@ -209,6 +210,10 @@ open class Chart @JvmOverloads constructor(
         heightRow = baseHeight / ROWS.toFloat()
 
         updateIndexes()
+        for (index in 0 until yMinMaxValues.size) {
+            val yScale = baseHeight / (yMinMaxValues[index].max - yMinMaxValues[index].min).toFloat()
+            yScales.add(yScale)
+        }
     }
 
     private fun updateIndexes() {
@@ -259,12 +264,32 @@ open class Chart @JvmOverloads constructor(
         //invalidate()
     }
 
+    // TODO
     private fun drawYWithLegend(canvas: Canvas) {
+        val boundRect = Rect()
         for (index in 0 until yMinMaxValues.size step 2) {
             val minMax = yMinMaxValues[index]
             val step = (minMax.max - minMax.min) / ROWS
-            var yText = step
+
+            var minMax1: MinMaxValues? = null
+            var step1: Long? = null
+            if (chartData.yScaled && (index + 1) < yMinMaxValues.size) {
+                minMax1 = yMinMaxValues[index + 1]
+                step1 = (minMax1.max - minMax1.min) / ROWS
+            }
+
+            textPaint.color = if (chartData.yScaled) chartData.ys[index].color else ContextCompat.getColor(
+                getContext(),
+                R.color.legend_xy
+            )
             canvas.drawText("0", 0f, baseHeight, textPaint)
+
+            if (chartData.yScaled && (index + 1) < yMinMaxValues.size) {
+                textPaint.getTextBounds("0", 0, 1, boundRect)
+                textPaint.color = chartData.ys[index + 1].color
+                canvas.drawText("0", baseWidth - boundRect.width() - 5, baseHeight, textPaint)
+            }
+
             for (row in 1 until ROWS) {
                 val yRow = baseHeight - heightRow * row
                 canvas.drawLine(
@@ -274,8 +299,18 @@ open class Chart @JvmOverloads constructor(
                     yRow,
                     paintVerticalChartLine
                 )
-                canvas.drawText(reduction(yText + minMax.min), 0f, yRow - 20, textPaint)
-                yText += step
+                textPaint.color = if (chartData.yScaled) chartData.ys[index].color else ContextCompat.getColor(
+                    getContext(),
+                    R.color.legend_xy
+                )
+                canvas.drawText(reduction(step * row + minMax.min), 0f, yRow - 10, textPaint)
+
+                if (chartData.yScaled && (index + 1) < yMinMaxValues.size) {
+                    val text = reduction(step1!! * row + minMax1!!.min)
+                    textPaint.getTextBounds(text, 0, text.length, boundRect)
+                    textPaint.color = chartData.ys[index + 1].color
+                    canvas.drawText(text, baseWidth - boundRect.width() - 5, yRow - 10, textPaint)
+                }
             }
         }
     }
