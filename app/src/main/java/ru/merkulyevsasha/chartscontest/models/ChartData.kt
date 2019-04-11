@@ -4,6 +4,7 @@ import java.util.*
 
 data class ChartData(
     val title: String,
+    val yScaled: Boolean,
     val xValues: List<Date>,
     val xValuesInDays: List<Long>,
     val ys: List<YValue>

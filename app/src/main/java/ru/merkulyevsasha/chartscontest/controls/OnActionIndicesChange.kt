@@ -11,11 +11,10 @@ interface OnDataChange {
         startIndex: Int,
         stopIndex: Int,
         minX: Long,
-        minY: Long,
         maxX: Long,
-        maxY: Long,
         xScale: Float,
-        yScale: Float,
+        yMinMaxValues: List<BaseChart.MinMaxValues>,
+        yScale: List<Float>,
         chartLines: List<BaseChart.ChartLineExt>,
         yShouldVisible: Map<Int, Boolean>
     )

@@ -17,12 +17,10 @@ open class BaseChart @JvmOverloads constructor(
 
     internal var baseWidth: Float = 0f
     internal var baseHeight: Float = 0f
-    internal var xScale: Float = 1f
-    internal var yScale: Float = 1f
-    internal var maxY: Long = 0
-    internal var minY: Long = 0
     internal var maxX: Long = 0
     internal var minX: Long = 0
+    internal var xScale: Float = 1f
+//    internal var yScale: Float = 1f
     internal var startIndex: Int = 0
     internal var stopIndex: Int = 0
 
@@ -31,12 +29,27 @@ open class BaseChart @JvmOverloads constructor(
     internal val yShouldVisible = mutableMapOf<Int, Boolean>()
     internal val chartLines = mutableListOf<ChartLineExt>()
 
+    internal val yMinMaxValues = mutableListOf<MinMaxValues>()
+    internal val yScales = mutableListOf<Float>()
+
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
+
         minX = chartData.getMinInDays()
         maxX = chartData.getMaxInDays()
-        minY = chartData.getMinYs()
-        maxY = chartData.getMaxYs()
+
+        if (chartData.yScaled) {
+            for (yIndex in 0 until chartData.ys.size) {
+                val yValue = chartData.ys[yIndex]
+                val min = yValue.yValues.min()!!
+                val max = yValue.yValues.max()!!
+                yMinMaxValues.add(MinMaxValues(min, max))
+            }
+        } else {
+            val min = chartData.getMinYs()
+            val max = chartData.getMaxYs()
+            yMinMaxValues.add(MinMaxValues(min, max))
+        }
 
         startIndex = 0
         stopIndex = chartData.xValuesInDays.size
@@ -147,10 +160,8 @@ open class BaseChart @JvmOverloads constructor(
         stopIndex: Int,
         minX: Long,
         maxX: Long,
-        minY: Long,
-        maxY: Long
+        yMinMaxValues: List<MinMaxValues>
     ): List<ChartLineExt> {
-        val yScale = baseHeight / (maxY - minY).toFloat()
         val xScale = baseWidth / (maxX - minX).toFloat()
         val result = mutableListOf<ChartLineExt>()
 
@@ -161,7 +172,14 @@ open class BaseChart @JvmOverloads constructor(
                 val yValue = chartData.ys[yIndex]
 
                 val x1 = (xDays - minX) * xScale
-                val y1 = baseHeight - (yValue.yValues[xIndex] - minY) * yScale
+                var y1: Float
+                if (chartData.yScaled) {
+                    val scale = baseHeight / (yMinMaxValues[yIndex].max - yMinMaxValues[yIndex].min).toFloat()
+                    y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[yIndex].min) * scale
+                } else {
+                    val scale = baseHeight / (yMinMaxValues[0].max - yMinMaxValues[0].min).toFloat()
+                    y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[0].min) * scale
+                }
 
                 val chartPaint = paints[chartData.ys[yIndex].name]!!
                 val chartType = yValue.type
@@ -172,6 +190,7 @@ open class BaseChart @JvmOverloads constructor(
                         yIndex,
                         xDate,
                         xDays,
+                        chartData.yScaled,
                         yValue.yValues[xIndex],
                         x1,
                         y1,
@@ -209,12 +228,18 @@ open class BaseChart @JvmOverloads constructor(
         val yIndex: Int,
         val xDate: Date,
         val xDays: Long,
+        val yScaled: Boolean,
         val yValue: Long,
         var x: Float,
         var y: Float,
         val paint: Paint,
         val type: String,
         val ys: List<YValue>
+    )
+
+    data class MinMaxValues(
+        var min: Long,
+        var max: Long
     )
 
     companion object {

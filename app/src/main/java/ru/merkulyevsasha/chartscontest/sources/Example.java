@@ -25,6 +25,9 @@ public class Example {
     @SerializedName("stacked")
     @Expose
     private Boolean stacked;
+    @SerializedName("y_scaled")
+    @Expose
+    private Boolean y_scaled;
 
     public List<List<String>> getColumns() {
         return columns;
@@ -72,5 +75,13 @@ public class Example {
 
     public void setStacked(Boolean stacked) {
         this.stacked = stacked;
+    }
+
+    public Boolean getY_scaled() {
+        return y_scaled;
+    }
+
+    public void setY_scaled(Boolean y_scaled) {
+        this.y_scaled = y_scaled;
     }
 }

@@ -57,22 +57,21 @@ class ChartXLegend @JvmOverloads constructor(
         startIndex: Int,
         stopIndex: Int,
         minX: Long,
-        minY: Long,
         maxX: Long,
-        maxY: Long,
         xScale: Float,
-        yScale: Float,
+        yMinMaxValues: List<BaseChart.MinMaxValues>,
+        yScale: List<Float>,
         chartLines: List<BaseChart.ChartLineExt>,
         yShouldVisible: Map<Int, Boolean>
     ) {
         this.startIndex = startIndex
         this.stopIndex = stopIndex
         this.minX = minX
-        this.minY = minY
+        //this.minY = minY
         this.maxX = maxX
-        this.maxY = maxY
+        //this.maxY = maxY
         this.xScale = xScale
-        this.yScale = yScale
+        //this.yScale = yScale
         this.chartLines.clear()
         this.chartLines.addAll(chartLines)
         this.yShouldVisible.clear()

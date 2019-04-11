@@ -36,7 +36,7 @@ class SourceDataConverter {
                 yValues.add(yVal)
             }
         }
-        return ChartData(title, xValues, xValuesInDays, yValues)
+        return ChartData(title, example.y_scaled ?: false, xValues, xValuesInDays, yValues)
     }
 
     private fun getDateValues(stringValues: List<String>): List<Date> {

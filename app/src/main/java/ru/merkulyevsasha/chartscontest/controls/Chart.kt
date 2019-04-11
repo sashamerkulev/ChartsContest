@@ -56,21 +56,26 @@ open class Chart @JvmOverloads constructor(
 
         yShouldVisible[index] = isChecked
 
-        minY = getMinYAccordingToVisibility(startIndex, stopIndex)
-        maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
-        yScale = baseHeight / (maxY - minY).toFloat()
+        if (!chartData.yScaled) {
+            val minY = getMinYAccordingToVisibility(startIndex, stopIndex)
+            val maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
+            val yScale = baseHeight / (maxY - minY).toFloat()
+            yMinMaxValues.clear()
+            yMinMaxValues.add(MinMaxValues(minY, maxY))
+            yScales.clear()
+            yScales.add(yScale)
+        }
 
-        val newChartLines = getChartLinesExt(startIndex, stopIndex, minX, maxX, minY, maxY)
+        val newChartLines = getChartLinesExt(startIndex, stopIndex, minX, maxX, yMinMaxValues)
 
         onDataChange?.onDataChanged(
             startIndex,
             stopIndex,
             minX,
-            minY,
             maxX,
-            maxY,
             xScale,
-            yScale,
+            yMinMaxValues,
+            yScales,
             newChartLines,
             yShouldVisible
         )
@@ -139,7 +144,6 @@ open class Chart @JvmOverloads constructor(
                 })
                 this.start()
             }
-//            animationEnd(startIndex, stopIndex, newChartLines)
         }
     }
 
@@ -150,26 +154,31 @@ open class Chart @JvmOverloads constructor(
         }
 
         chartLines.clear()
-        chartLines.addAll(getChartLinesExt(newStartIndex, stopIndex, minX, maxX, minY, maxY))
+        chartLines.addAll(getChartLinesExt(newStartIndex, stopIndex, minX, maxX, yMinMaxValues))
 
-        minY = getMinYAccordingToVisibility(startIndex, stopIndex)
-        maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
-        yScale = baseHeight / (maxY - minY).toFloat()
+        if (!chartData.yScaled) {
+            val minY = getMinYAccordingToVisibility(startIndex, stopIndex)
+            val maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
+            val yScale = baseHeight / (maxY - minY).toFloat()
+            yMinMaxValues.clear()
+            yMinMaxValues.add(MinMaxValues(minY, maxY))
+            yScales.clear()
+            yScales.add(yScale)
+        }
 
         maxX = chartData.xValuesInDays.subList(newStartIndex, stopIndex).max()!!
         minX = chartData.xValuesInDays.subList(newStartIndex, stopIndex).min()!!
         xScale = baseWidth / (maxX - minX).toFloat()
 
-        val newChartLines = getChartLinesExt(newStartIndex, stopIndex, minX, maxX, minY, maxY)
+        val newChartLines = getChartLinesExt(newStartIndex, stopIndex, minX, maxX, yMinMaxValues)
         onDataChange?.onDataChanged(
             newStartIndex,
             stopIndex,
             minX,
-            minY,
             maxX,
-            maxY,
             xScale,
-            yScale,
+            yMinMaxValues,
+            yScales,
             newChartLines,
             yShouldVisible
         )
@@ -184,26 +193,31 @@ open class Chart @JvmOverloads constructor(
         }
 
         chartLines.clear()
-        chartLines.addAll(getChartLinesExt(startIndex, newStopIndex, minX, maxX, minY, maxY))
+        chartLines.addAll(getChartLinesExt(startIndex, newStopIndex, minX, maxX, yMinMaxValues))
 
-        minY = getMinYAccordingToVisibility(startIndex, stopIndex)
-        maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
-        yScale = baseHeight / (maxY - minY).toFloat()
+        if (!chartData.yScaled) {
+            val minY = getMinYAccordingToVisibility(startIndex, stopIndex)
+            val maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
+            val yScale = baseHeight / (maxY - minY).toFloat()
+            yMinMaxValues.clear()
+            yMinMaxValues.add(MinMaxValues(minY, maxY))
+            yScales.clear()
+            yScales.add(yScale)
+        }
 
         maxX = chartData.xValuesInDays.subList(startIndex, newStopIndex).max()!!
         minX = chartData.xValuesInDays.subList(startIndex, newStopIndex).min()!!
         xScale = baseWidth / (maxX - minX).toFloat()
 
-        val newChartLines = getChartLinesExt(startIndex, newStopIndex, minX, maxX, minY, maxY)
+        val newChartLines = getChartLinesExt(startIndex, newStopIndex, minX, maxX, yMinMaxValues)
         onDataChange?.onDataChanged(
             startIndex,
             newStopIndex,
             minX,
-            minY,
             maxX,
-            maxY,
             xScale,
-            yScale,
+            yMinMaxValues,
+            yScales,
             newChartLines,
             yShouldVisible
         )
@@ -222,24 +236,28 @@ open class Chart @JvmOverloads constructor(
     }
 
     private fun updateIndexes() {
-        minY = getMinYAccordingToVisibility(startIndex, stopIndex)
-        maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
-        yScale = baseHeight / (maxY - minY).toFloat()
         maxX = chartData.xValuesInDays.subList(startIndex, stopIndex).max()!!
         minX = chartData.xValuesInDays.subList(startIndex, stopIndex).min()!!
         xScale = baseWidth / (maxX - minX).toFloat()
-        yScale = baseHeight / (maxY - minY).toFloat()
+        if (!chartData.yScaled) {
+            val minY = getMinYAccordingToVisibility(startIndex, stopIndex)
+            val maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
+            val yScale = baseHeight / (maxY - minY).toFloat()
+            yMinMaxValues.clear()
+            yMinMaxValues.add(MinMaxValues(minY, maxY))
+            yScales.clear()
+            yScales.add(yScale)
+        }
         chartLines.clear()
-        chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, minY, maxY))
+        chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, yMinMaxValues))
         onDataChange?.onDataChanged(
             startIndex,
             stopIndex,
             minX,
-            minY,
             maxX,
-            maxY,
             xScale,
-            yScale,
+            yMinMaxValues,
+            yScales,
             chartLines,
             yShouldVisible
         )
@@ -262,20 +280,23 @@ open class Chart @JvmOverloads constructor(
     }
 
     private fun drawYWithLegend(canvas: Canvas) {
-        val step = (maxY - minY) / ROWS
-        var yText = step
-        canvas.drawText("0", 0f, baseHeight, textPaint)
-        for (row in 1 until ROWS) {
-            val yRow = baseHeight - heightRow * row
-            canvas.drawLine(
-                0f,
-                yRow,
-                width.toFloat(),
-                yRow,
-                paintVerticalChartLine
-            )
-            canvas.drawText(reduction(yText + minY), 0f, yRow - 20, textPaint)
-            yText += step
+        for (index in 0 until yMinMaxValues.size step 2) {
+            val minMax = yMinMaxValues[index]
+            val step = (minMax.max - minMax.min) / ROWS
+            var yText = step
+            canvas.drawText("0", 0f, baseHeight, textPaint)
+            for (row in 1 until ROWS) {
+                val yRow = baseHeight - heightRow * row
+                canvas.drawLine(
+                    0f,
+                    yRow,
+                    width.toFloat(),
+                    yRow,
+                    paintVerticalChartLine
+                )
+                canvas.drawText(reduction(yText + minMax.min), 0f, yRow - 20, textPaint)
+                yText += step
+            }
         }
     }
 

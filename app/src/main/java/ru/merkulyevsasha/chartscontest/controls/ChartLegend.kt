@@ -28,11 +28,11 @@ class ChartLegend @JvmOverloads constructor(
     private var baseHeight: Float = 0f
 
     private var xScale: Float = 1f
-    private var yScale: Float = 1f
-    private var maxY: Long = 0
-    private var minY: Long = 0
     private var maxX: Long = 0
     private var minX: Long = 0
+    private var yMinMaxValues = mutableListOf<BaseChart.MinMaxValues>()
+    private var yScale = mutableListOf<Float>()
+
     private var startIndex: Int = 0
     private var stopIndex: Int = 0
     private val yShouldVisible = mutableMapOf<Int, Boolean>()
@@ -136,22 +136,24 @@ class ChartLegend @JvmOverloads constructor(
         startIndex: Int,
         stopIndex: Int,
         minX: Long,
-        minY: Long,
         maxX: Long,
-        maxY: Long,
         xScale: Float,
-        yScale: Float,
+        yMinMaxValues: List<BaseChart.MinMaxValues>,
+        yScale: List<Float>,
         chartLines: List<BaseChart.ChartLineExt>,
         yShouldVisible: Map<Int, Boolean>
     ) {
         this.startIndex = startIndex
         this.stopIndex = stopIndex
         this.minX = minX
-        this.minY = minY
         this.maxX = maxX
-        this.maxY = maxY
         this.xScale = xScale
-        this.yScale = yScale
+
+        this.yMinMaxValues.clear()
+        this.yMinMaxValues.addAll(yMinMaxValues)
+        this.yScale.clear()
+        this.yScale.addAll(yScale)
+
         this.chartLines.clear()
         this.chartLines.addAll(chartLines)
         this.yShouldVisible.clear()
@@ -219,7 +221,17 @@ class ChartLegend @JvmOverloads constructor(
                     for (index in 0 until point.ys.size) {
                         if (!yShouldVisible[index]!!) continue
                         val yValue = point.ys[index]
-                        val pointY = baseHeight - (yValue.yValues[point.xIndex] - minY) * yScale
+
+                        var min: Long
+                        var pointY: Float
+                        if (point.yScaled) {
+                            min = yMinMaxValues[index].min
+                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScale[index]
+                        } else {
+                            min = yMinMaxValues[0].min
+                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScale[0]
+                        }
+
                         paintCircle.color = yValue.color
                         this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintFillCircle)
                         this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintCircle)
@@ -405,6 +417,7 @@ class ChartLegend @JvmOverloads constructor(
                         chartLine.xDate,
                         chartLine.x,
                         chartLine.xIndex,
+                        chartLine.yScaled,
                         chartLine.ys,
                         chartLine.type
                     )
@@ -417,6 +430,7 @@ class ChartLegend @JvmOverloads constructor(
                         chartLine.xDate,
                         chartLine.x,
                         chartLine.xIndex,
+                        chartLine.yScaled,
                         chartLine.ys,
                         chartLine.type
                     )
@@ -428,6 +442,7 @@ class ChartLegend @JvmOverloads constructor(
                         chartLine.xDate,
                         chartLine.x,
                         chartLine.xIndex,
+                        chartLine.yScaled,
                         chartLine.ys,
                         chartLine.type
                     )
@@ -458,6 +473,7 @@ class ChartLegend @JvmOverloads constructor(
         val xDate: Date,
         val x: Float,
         val xIndex: Int,
+        val yScaled: Boolean,
         val ys: List<YValue>,
         val type: String
     )

@@ -34,11 +34,10 @@ class ChartLayoutView @JvmOverloads constructor(
                 startIndex: Int,
                 stopIndex: Int,
                 minX: Long,
-                minY: Long,
                 maxX: Long,
-                maxY: Long,
                 xScale: Float,
-                yScale: Float,
+                yMinMaxValues: List<BaseChart.MinMaxValues>,
+                yScale: List<Float>,
                 chartLines: List<BaseChart.ChartLineExt>,
                 yShouldVisible: Map<Int, Boolean>
             ) {
@@ -46,10 +45,9 @@ class ChartLayoutView @JvmOverloads constructor(
                     startIndex,
                     stopIndex,
                     minX,
-                    minY,
                     maxX,
-                    maxY,
                     xScale,
+                    yMinMaxValues,
                     yScale,
                     chartLines,
                     yShouldVisible
@@ -58,10 +56,9 @@ class ChartLayoutView @JvmOverloads constructor(
                     startIndex,
                     stopIndex,
                     minX,
-                    minY,
                     maxX,
-                    maxY,
                     xScale,
+                    yMinMaxValues,
                     yScale,
                     chartLines,
                     yShouldVisible

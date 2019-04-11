@@ -90,9 +90,11 @@ class Slider @JvmOverloads constructor(
     }
 
     override fun onMeasureEnd() {
-        yScale = baseHeight / (maxY - minY).toFloat()
+        for (index in 0 until yMinMaxValues.size) {
+            val yScale = baseHeight / (yMinMaxValues[index].max - yMinMaxValues[index].min).toFloat()
+            yScales.add(yScale)
+        }
         xScale = baseWidth / (maxX - minX).toFloat()
-
         y2 = baseHeight
     }
 

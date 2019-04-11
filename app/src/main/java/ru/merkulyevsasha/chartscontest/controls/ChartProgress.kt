@@ -17,21 +17,32 @@ class ChartProgress @JvmOverloads constructor(
     }
 
     override fun onMeasureEnd() {
-        yScale = baseHeight / (maxY - minY).toFloat()
+        for (index in 0 until yMinMaxValues.size) {
+            val yScale = baseHeight / (yMinMaxValues[index].max - yMinMaxValues[index].min).toFloat()
+            yScales.add(yScale)
+        }
         xScale = baseWidth / (maxX - minX).toFloat()
         chartLines.clear()
-        chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, minY, maxY))
+        chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, yMinMaxValues))
     }
 
     fun onYDataSwitched(index: Int, checked: Boolean) {
         yShouldVisible[index] = checked
 
-        minY = getMinYAccordingToVisibility(0, chartData.xValues.size - 1)
-        maxY = getMaxYAccordingToVisibility(0, chartData.xValues.size - 1)
-        yScale = baseHeight / (maxY - minY).toFloat()
-
-        chartLines.clear()
-        chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, minY, maxY))
+        if (chartData.yScaled) {
+            chartLines.clear()
+            chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, yMinMaxValues))
+        } else {
+            val minY = getMinYAccordingToVisibility(0, chartData.xValues.size - 1)
+            val maxY = getMaxYAccordingToVisibility(0, chartData.xValues.size - 1)
+            val yScale = baseHeight / (maxY - minY).toFloat()
+            yMinMaxValues.clear()
+            yMinMaxValues.add(MinMaxValues(minY, maxY))
+            yScales.clear()
+            yScales.add(yScale)
+            chartLines.clear()
+            chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, yMinMaxValues))
+        }
 
         for (indexLine in 0 until chartLines.size) {
             val chartLine = chartLines[indexLine]
