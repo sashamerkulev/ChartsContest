@@ -24,4 +24,7 @@
     <color name="legend_chevron">#D2D5D7</color>
     <color name="legend_title">#222222</color>
 
+    <color name="scroll_thumb">#F0F0F0</color>
+
+
 </resources>
