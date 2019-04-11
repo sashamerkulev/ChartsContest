@@ -32,6 +32,9 @@ open class BaseChart @JvmOverloads constructor(
     internal val yMinMaxValues = mutableListOf<MinMaxValues>()
     internal val yScales = mutableListOf<Float>()
 
+    internal val stackedRects = mutableListOf<StackedRect>()
+    internal var stackedType: String = ""
+
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
 
@@ -112,52 +115,66 @@ open class BaseChart @JvmOverloads constructor(
         canvas?.apply {
 
             if (chartData.stacked) {
-                val groupedByX = chartLines.groupBy { it.xIndex }
-                for (xIndex in groupedByX.keys) {
-                    val xIndexes = groupedByX[xIndex]!!
-                    val xSortedByYValue = xIndexes.sortedByDescending { it.yValue }
-                    val chartLine = xSortedByYValue.first{ yShouldVisible[it.yIndex]!! }
-                    if (yShouldVisible[chartLine.yIndex] == true) {
-                        val type = chartLine.type
-                        when (type) {
-                            "bar" -> {
-                                for (yIndex in 0 until xSortedByYValue.size) {
-                                    val drawChartLine = xSortedByYValue[yIndex]
-                                    if (!yShouldVisible[drawChartLine.yIndex]!!) continue
-                                    if (yIndex == 0) {
-                                        drawRect(
-                                            drawChartLine.x - BAR_SIZE / 2,
-                                            drawChartLine.y,
-                                            drawChartLine.x + BAR_SIZE / 2,
-                                            baseHeight,
-                                            drawChartLine.paint
-                                        )
-                                    } else {
-                                        val diff = baseHeight - drawChartLine.y
-                                        drawRect(
-                                            drawChartLine.x - BAR_SIZE / 2,
-                                            chartLine.y,
-                                            drawChartLine.x + BAR_SIZE / 2,
-                                            chartLine.y + diff,
-                                            drawChartLine.paint
-                                        )
-                                    }
-                                }
-                            }
-                            "area" -> {
-//                                if (chartLine.xIndex > 0) {
-//                                    val prev = chartLines.subList(0, index)
-//                                        .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
-//                                    if (prev.isNotEmpty()) {
-//                                        val x1 = prev.last().x
-//                                        val y1 = prev.last().y
-//                                        drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
+//                val groupedByX = chartLines.groupBy { it.xIndex }
+//                for (xIndex in groupedByX.keys) {
+//                    val xIndexes = groupedByX[xIndex]!!
+//                    val xSortedByYValue = xIndexes.sortedByDescending { it.yValue }
+//                    val chartLine = xSortedByYValue.first { yShouldVisible[it.yIndex]!! }
+//                    if (yShouldVisible[chartLine.yIndex] == true) {
+//                        val type = chartLine.type
+//                        when (type) {
+//                            "bar" -> {
+//                                for (yIndex in 0 until xSortedByYValue.size) {
+//                                    val drawChartLine = xSortedByYValue[yIndex]
+//                                    if (!yShouldVisible[drawChartLine.yIndex]!!) continue
+//                                    if (yIndex == 0) {
+//                                        drawRect(
+//                                            drawChartLine.x - BAR_SIZE / 2,
+//                                            drawChartLine.y,
+//                                            drawChartLine.x + BAR_SIZE / 2,
+//                                            baseHeight,
+//                                            drawChartLine.paint
+//                                        )
+//                                    } else {
+//                                        val diff = baseHeight - drawChartLine.y
+//                                        drawRect(
+//                                            drawChartLine.x - BAR_SIZE / 2,
+//                                            chartLine.y,
+//                                            drawChartLine.x + BAR_SIZE / 2,
+//                                            chartLine.y + diff,
+//                                            drawChartLine.paint
+//                                        )
 //                                    }
 //                                }
-                            }
+//                            }
+//                            "area" -> {
+////                                if (chartLine.xIndex > 0) {
+////                                    val prev = chartLines.subList(0, index)
+////                                        .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
+////                                    if (prev.isNotEmpty()) {
+////                                        val x1 = prev.last().x
+////                                        val y1 = prev.last().y
+////                                        drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
+////                                    }
+////                                }
+//                            }
+//                        }
+//                    }
+//                }
+                for (stackedRect in stackedRects) {
+                    when (stackedType) {
+                        "bar" -> {
+                            drawRect(
+                                stackedRect.x1,
+                                stackedRect.y1,
+                                stackedRect.x2,
+                                stackedRect.y2,
+                                stackedRect.paint
+                            )
                         }
                     }
                 }
+
                 return@apply
             }
 
@@ -250,6 +267,52 @@ open class BaseChart @JvmOverloads constructor(
             }
         }
 
+        if (chartData.stacked) {
+            stackedRects.clear()
+            val groupedByX = result.groupBy { it.xIndex }
+            for (xIndex in groupedByX.keys) {
+                val xIndexes = groupedByX[xIndex]!!
+                val xSortedByYValue = xIndexes.sortedByDescending { it.yValue }
+                val chartLine = xSortedByYValue.first { yShouldVisible[it.yIndex]!! }
+                if (yShouldVisible[chartLine.yIndex] == true) {
+                    stackedType = chartLine.type
+                    when (stackedType) {
+                        "bar" -> {
+                            for (yIndex in 0 until xSortedByYValue.size) {
+                                val drawChartLine = xSortedByYValue[yIndex]
+                                if (!yShouldVisible[drawChartLine.yIndex]!!) continue
+                                if (yIndex == 0) {
+                                    stackedRects.add(
+                                        StackedRect(
+                                            drawChartLine.x - BAR_SIZE / 2,
+                                            drawChartLine.y,
+                                            drawChartLine.x + BAR_SIZE / 2,
+                                            baseHeight,
+                                            drawChartLine.paint
+                                        )
+                                    )
+                                } else {
+                                    val diff = baseHeight - drawChartLine.y
+                                    stackedRects.add(
+                                        StackedRect(
+                                            drawChartLine.x - BAR_SIZE / 2,
+                                            chartLine.y,
+                                            drawChartLine.x + BAR_SIZE / 2,
+                                            chartLine.y + diff,
+                                            drawChartLine.paint
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                        "area" -> {
+                        }
+                    }
+                }
+            }
+        }
+
+
         return result
     }
 
@@ -288,6 +351,14 @@ open class BaseChart @JvmOverloads constructor(
     data class MinMaxValues(
         var min: Long,
         var max: Long
+    )
+
+    data class StackedRect(
+        val x1: Float,
+        val y1: Float,
+        val x2: Float,
+        val y2: Float,
+        val paint: Paint
     )
 
     companion object {
