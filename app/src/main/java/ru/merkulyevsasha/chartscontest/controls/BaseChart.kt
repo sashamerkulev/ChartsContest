@@ -178,8 +178,8 @@ open class BaseChart @JvmOverloads constructor(
                         drawRect(
                             chartLine.x,
                             chartLine.y,
-                            chartLine.x + BAR_SIZE,
-                            baseHeight,
+                            chartLine.x2,
+                            chartLine.y2,
                             chartLine.paint
                         )
                     }
@@ -331,33 +331,58 @@ open class BaseChart @JvmOverloads constructor(
                     val yValue = chartData.ys[yIndex]
 
                     val x1 = (xDays - minX) * xScale
-                    var y1: Float
-                    if (chartData.yScaled) {
-                        val scale = baseHeight / (yMinMaxValues[yIndex]!!.max - yMinMaxValues[yIndex]!!.min).toFloat()
-                        y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[yIndex]!!.min) * scale
-                    } else {
-                        val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
-                        y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[0]!!.min) * scale
-                    }
-
                     val chartPaint = paints[chartData.ys[yIndex].name]!!
                     val chartType = yValue.type
 
-                    result.add(
-                        ChartLineExt(
-                            xIndex,
-                            yIndex,
-                            xDate,
-                            xDays,
-                            chartData.yScaled,
-                            yValue.yValues[xIndex],
-                            x1,
-                            y1,
-                            chartPaint,
-                            chartType,
-                            chartData.ys
+                    if (yValue.type == "line") {
+                        var y1: Float
+                        if (chartData.yScaled) {
+                            val scale =
+                                baseHeight / (yMinMaxValues[yIndex]!!.max - yMinMaxValues[yIndex]!!.min).toFloat()
+                            y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[yIndex]!!.min) * scale
+                        } else {
+                            val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
+                            y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[0]!!.min) * scale
+                        }
+
+                        result.add(
+                            ChartLineExt(
+                                xIndex,
+                                yIndex,
+                                xDate,
+                                xDays,
+                                chartData.yScaled,
+                                yValue.yValues[xIndex],
+                                x1,
+                                y1,
+                                chartPaint,
+                                chartType,
+                                chartData.ys
+                            )
                         )
-                    )
+                    } else if (yValue.type == "bar") {
+                        val scale = baseHeight / (yMinMaxValues[0]!!.max).toFloat()
+                        val y1 = baseHeight - (yValue.yValues[xIndex] ) * scale
+
+                        result.add(
+                            ChartLineExt(
+                                xIndex,
+                                yIndex,
+                                xDate,
+                                xDays,
+                                chartData.yScaled,
+                                yValue.yValues[xIndex],
+                                x1 - BAR_SIZE/2,
+                                y1,
+                                chartPaint,
+                                chartType,
+                                chartData.ys,
+                                x1 + BAR_SIZE/2,
+                                baseHeight
+                            )
+                        )
+
+                    }
                 }
             }
 
