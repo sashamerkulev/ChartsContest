@@ -23,6 +23,7 @@
     <color name="legend_xy">#78B7D3</color>
     <color name="legend_chevron">#767C85</color>
     <color name="legend_title">#ffffff</color>
+    <color name="legend_shadow">#222222</color>
 
     <color name="scroll_thumb">#1B2433</color>
 

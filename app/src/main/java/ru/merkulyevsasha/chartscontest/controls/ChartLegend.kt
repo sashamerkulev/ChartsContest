@@ -51,7 +51,6 @@ class ChartLegend @JvmOverloads constructor(
     private val paintTopBottomLine: Paint
     private val paintCircle: Paint
     private val paintFillCircle: Paint
-    private val legendRectPaint: Paint
     private val legendFillRectPaint: Paint
     private val shadowRectPaint: Paint
 
@@ -115,18 +114,12 @@ class ChartLegend @JvmOverloads constructor(
         textLegendNumberPaint.textSize = 12 * metrics.density
 
         val cornerPathEffect10 = CornerPathEffect(20f)
-        legendRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-        legendRectPaint.strokeWidth = BaseChart.LEGEND_RECT_STOKE_WIDTH
-        legendRectPaint.style = Paint.Style.STROKE
-        legendRectPaint.color = ContextCompat.getColor(getContext(), ru.merkulyevsasha.chartscontest.R.color.border)
-        legendRectPaint.pathEffect = cornerPathEffect10
-        legendRectPaint.setShadowLayer(30f, 10f, 10f, ContextCompat.getColor(context, ru.merkulyevsasha.chartscontest.R.color.chart_line))
-
         legendFillRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         legendFillRectPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
         legendFillRectPaint.style = Paint.Style.FILL_AND_STROKE
         legendFillRectPaint.color = ContextCompat.getColor(getContext(), ru.merkulyevsasha.chartscontest.R.color.legend_bgrnd)
         legendFillRectPaint.pathEffect = cornerPathEffect10
+        legendFillRectPaint.setShadowLayer(10f, 0f, 0f, ContextCompat.getColor(context, ru.merkulyevsasha.chartscontest.R.color.legend_shadow))
 
         shadowRectPaint = Paint(Paint.ANTI_ALIAS_FLAG)
         shadowRectPaint.strokeWidth = BaseChart.CHART_STOKE_WIDTH
@@ -248,13 +241,13 @@ class ChartLegend @JvmOverloads constructor(
                     newLegendData!!.position.y + newLegendData!!.sizes.height,
                     legendFillRectPaint
                 )
-                this.drawRect(
-                    newLegendData!!.position.x,
-                    newLegendData!!.position.y,
-                    newLegendData!!.position.x + newLegendData!!.sizes.width,
-                    newLegendData!!.position.y + newLegendData!!.sizes.height,
-                    legendRectPaint
-                )
+//                this.drawRect(
+//                    newLegendData!!.position.x,
+//                    newLegendData!!.position.y,
+//                    newLegendData!!.position.x + newLegendData!!.sizes.width,
+//                    newLegendData!!.position.y + newLegendData!!.sizes.height,
+//                    legendRectPaint
+//                )
 
                 // draw legend title (week/day month/year and shevron icon)
                 this.drawText(
