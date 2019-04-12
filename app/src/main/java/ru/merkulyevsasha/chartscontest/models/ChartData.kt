@@ -8,15 +8,33 @@ data class ChartData(
     val percentage: Boolean,
     val stacked: Boolean,
     val xValues: List<Date>,
-    val xValuesInDays: List<Long>,
-    val ys: List<YValue>
+    private val xValuesInDays: List<Long>,
+    private val xValuesInHours: List<Long>,
+    val ys: List<YValue>,
+    var xValuesIn: XValuesEnum = XValuesEnum.X_DAYS
 ) {
-    fun getMinInDays(): Long {
+    private fun getMinInDays(): Long {
         return xValuesInDays.min()!!
     }
 
-    fun getMaxInDays(): Long {
+    private fun getMaxInDays(): Long {
         return xValuesInDays.max()!!
+    }
+
+    private fun getMinInHours(): Long {
+        return xValuesInHours.min()!!
+    }
+
+    private fun getMaxInHours(): Long {
+        return xValuesInHours.max()!!
+    }
+
+    fun getMinX(): Long {
+        return if (xValuesIn == XValuesEnum.X_DAYS) getMinInDays() else getMinInHours()
+    }
+
+    fun getMaxX(): Long {
+        return if (xValuesIn == XValuesEnum.X_DAYS) getMaxInDays() else getMaxInHours()
     }
 
     fun getMaxYs(): Long {
@@ -26,6 +44,11 @@ data class ChartData(
     fun getMinYs(): Long {
         return ys.map { it.yValues.min()!! }.min()!!
     }
+
+    fun xValuesIn(): List<Long> {
+        return if (xValuesIn == XValuesEnum.X_DAYS) xValuesInDays else xValuesInHours
+    }
+
 }
 
 data class YValue(
@@ -35,3 +58,8 @@ data class YValue(
     val color: Int,
     val avg: Double = 0.0
 )
+
+enum class XValuesEnum {
+    X_DAYS,
+    X_HOURS
+}

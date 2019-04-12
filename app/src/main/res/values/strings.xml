@@ -2,4 +2,5 @@
     <string name="app_name">ChartsContest</string>
     <string name="title">Followers</string>
     <string name="activity_title">Statistics</string>
+    <string name="zoom_out_title">Zoom out</string>
 </resources>

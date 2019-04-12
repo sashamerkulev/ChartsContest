@@ -16,31 +16,54 @@
             android:background="@color/legend_bgrnd"
             >
 
-        <TextView
-                android:id="@+id/chartTitle"
+        <RelativeLayout
+                android:id="@+id/zoomContainer"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/title"
-                android:textColor="@color/colorAccent"
-                android:textSize="14sp"
-                android:layout_alignParentStart="true"
-                />
+                android:layout_height="30dp"
+                >
 
-        <TextView
-                android:id="@+id/chartCurrentPeriod"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/title"
-                android:textColor="@color/colorAccent"
-                android:textSize="14sp"
-                android:layout_alignParentEnd="true"
-                tools:ignore="RelativeOverlap"/>
+            <ImageView
+                    android:id="@+id/zoomOut"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:srcCompat="@drawable/ic_zoom_out_24px"
+                    tools:ignore="ContentDescription,MissingPrefix"
+                    android:clickable="false"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    android:layout_marginEnd="20dp"
+                    android:layout_centerVertical="true"
+                    />
+
+            <TextView
+                    android:id="@+id/chartTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/title"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14sp"
+                    android:layout_centerVertical="true"
+                    android:layout_toEndOf="@+id/zoomOut"
+                    />
+
+            <TextView
+                    android:id="@+id/chartCurrentPeriod"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/title"
+                    android:textColor="@color/colorAccent"
+                    android:textSize="14sp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    tools:ignore="RelativeOverlap"/>
+
+        </RelativeLayout>
 
         <ru.merkulyevsasha.chartscontest.controls.Chart
                 android:id="@+id/chart"
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
-                android:layout_below="@+id/chartTitle"
+                android:layout_below="@+id/zoomContainer"
                 android:layout_marginTop="8dp"
                 />
 
@@ -48,7 +71,7 @@
                 android:id="@+id/chartLegend"
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
-                android:layout_below="@+id/chartTitle"
+                android:layout_below="@+id/zoomContainer"
                 android:layout_marginTop="8dp"
                 />
 

@@ -8,6 +8,7 @@ class MainPresenter(private val sourceDataConverter: SourceDataConverter) {
     private var view: IMainView? = null
 
     private val chartNames = HashMap<Int, String>()
+
     init {
         chartNames.put(0, "Followers")
         chartNames.put(1, "Interactions")
@@ -32,5 +33,10 @@ class MainPresenter(private val sourceDataConverter: SourceDataConverter) {
             result.add(chartData)
         }
         view?.showCharts(result)
+    }
+
+    fun dealWithIt(index: Int, example: Example) {
+        val chartData = sourceDataConverter.getChartData("", example)
+        view?.updateChart(index, chartData)
     }
 }

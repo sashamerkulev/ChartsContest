@@ -7,10 +7,14 @@ import android.view.Menu
 import com.google.gson.Gson
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.merkulyevsasha.chartscontest.controls.ChartLayoutView
+import ru.merkulyevsasha.chartscontest.controls.ChartLegend
+import ru.merkulyevsasha.chartscontest.controls.OnLegendClicked
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.XValuesEnum
 import ru.merkulyevsasha.chartscontest.sources.Example
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.util.*
 
 
 class MainActivity : AppCompatActivity(), IMainView {
@@ -35,7 +39,7 @@ class MainActivity : AppCompatActivity(), IMainView {
         try {
             val examples = mutableListOf<Example>()
             for (index in 1..5) {
-                val source = readSource("contest2/$index/overview.json")
+                val source = readSource(getAssetPath(index) + "overview.json")
                 val root = convertToObject(source)
                 examples.add(root)
             }
@@ -85,8 +89,35 @@ class MainActivity : AppCompatActivity(), IMainView {
 
     override fun showCharts(chartData: List<ChartData>) {
         for (index in 0 until charts.size) {
-            charts[index].setData(chartData[index])
+            charts[index].setData(chartData[index], object : OnLegendClicked {
+                override fun onLegendClicked(point: ChartLegend.Distance) {
+                    val calendar = Calendar.getInstance()
+                    calendar.time = point.xDate
+                    try {
+                        val year = calendar.get(Calendar.YEAR)
+                        var month = (calendar.get(Calendar.MONTH) + 1).toString()
+                        if (month.length < 2) month = "0$month"
+                        var day = calendar.get(Calendar.DAY_OF_MONTH).toString()
+                        if (day.length < 2) day = "0$day"
+                        val path = getAssetPath(index + 1) + "$year-$month/$day.json"
+                        val source = readSource(path)
+                        val root = convertToObject(source)
+                        pres.dealWithIt(index, root)
+                    } catch (e: java.lang.Exception) {
+                        e.printStackTrace()
+                    }
+                }
+            })
         }
+    }
+
+    override fun updateChart(index: Int, chartData: ChartData) {
+        chartData.xValuesIn = XValuesEnum.X_HOURS
+        charts[index].show(chartData)
+    }
+
+    private fun getAssetPath(index: Int): String {
+        return "contest2/$index/"
     }
 
     private fun readSource(name: String): String {

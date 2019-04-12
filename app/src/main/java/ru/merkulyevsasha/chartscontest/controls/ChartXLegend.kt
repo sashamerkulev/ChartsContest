@@ -7,6 +7,8 @@ import android.graphics.Rect
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import ru.merkulyevsasha.chartscontest.R
+import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.XValuesEnum
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -17,13 +19,15 @@ class ChartXLegend @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : BaseChart(context, attrs, defStyleAttr) {
 
-    private val pattern = "dd MMM"
-    private val dateFormat: SimpleDateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+    private val dayPattern = "dd MMM"
+    private val dayFormat: SimpleDateFormat = SimpleDateFormat(dayPattern, Locale.getDefault())
+
+    private val hourPattern = "HH:mm"
+    private val hourFormat: SimpleDateFormat = SimpleDateFormat(hourPattern, Locale.getDefault())
 
     private var yText: Float = 0f
     private val calendar = Calendar.getInstance()
 
-    private var stepInDays: Int = 6
     private val coordDates = mutableListOf<CoordDate>()
     private val textPaint: Paint
 
@@ -77,9 +81,11 @@ class ChartXLegend @JvmOverloads constructor(
         this.yShouldVisible.clear()
         this.yShouldVisible.putAll(yShouldVisible)
 
-        val startDay = chartData.xValuesInDays[startIndex]
-        val stopDay = chartData.xValuesInDays[stopIndex - 1]
-        val stepInDays = ((stopDay - startDay) / 5).toInt()
+        val startDay = chartData.xValuesIn()[startIndex]
+        val stopDay = chartData.xValuesIn()[stopIndex - 1]
+        val parts = 5
+        var stepInDays = ((stopDay - startDay) / parts).toInt()
+        if (stepInDays < 1) stepInDays = 1
 
         coordDates.clear()
         coordDates.addAll(getCoordDates(stepInDays))
@@ -90,16 +96,36 @@ class ChartXLegend @JvmOverloads constructor(
         val result = mutableListOf<CoordDate>()
         for (index in 0 until chartData.xValues.size step step) {
             calendar.time = chartData.xValues[index]
-            val text = dateFormat.format(calendar.time)
+            val text = if (chartData.xValuesIn == XValuesEnum.X_DAYS) dayFormat.format(calendar.time) else hourFormat.format(calendar.time)
 
             val bounds = Rect()
             textPaint.getTextBounds(text, 0, text.length, bounds)
 
-            val x = (chartData.xValuesInDays[index] - minX) * xScale - bounds.width() / 2
+            val x = (chartData.xValuesIn()[index] - minX) * xScale - bounds.width() / 2
 
             result.add(CoordDate(x, text, bounds))
         }
         return result
+    }
+
+    fun updateData(chartData: ChartData, startIndex: Int, stopIndex: Int) {
+        setData(chartData)
+        this.startIndex = startIndex
+        this.stopIndex = stopIndex
+        maxX = chartData.xValuesIn().subList(startIndex, stopIndex).max()!!
+        minX = chartData.xValuesIn().subList(startIndex, stopIndex).min()!!
+        xScale = baseWidth / (maxX - minX).toFloat()
+        calculateYScales()
+
+        val startDay = chartData.xValuesIn()[startIndex]
+        val stopDay = chartData.xValuesIn()[stopIndex - 1]
+        val parts = 5
+        var stepInDays = ((stopDay - startDay) / parts).toInt()
+        if (stepInDays < 1) stepInDays = 1
+        coordDates.clear()
+        coordDates.addAll(getCoordDates(stepInDays))
+
+        invalidate()
     }
 
     data class CoordDate(val x: Float, val date: String, val bound: Rect)

@@ -1,5 +1,6 @@
 package ru.merkulyevsasha.chartscontest.controls
 
+import android.animation.AnimatorSet
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -9,6 +10,7 @@ import android.view.View
 import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.models.YValue
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 open class BaseChart @JvmOverloads constructor(
     context: Context,
@@ -32,13 +34,18 @@ open class BaseChart @JvmOverloads constructor(
     internal val yMinMaxValues = mutableMapOf<Int, MinMaxValues>()
     internal val yScales = mutableMapOf<Int, Float>()
 
+    internal val animationInProgress = AtomicBoolean(false)
+    internal var animatorSet: AnimatorSet? = null
+    internal var noChartLines = false
+    private var newChartLines: List<ChartLineExt>? = null
+
     private var onMeasureCalling = true
 
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
 
-        minX = chartData.getMinInDays()
-        maxX = chartData.getMaxInDays()
+        minX = chartData.getMinX()
+        maxX = chartData.getMaxX()
 
         if (chartData.yScaled) {
             for (yIndex in 0 until chartData.ys.size) {
@@ -54,8 +61,9 @@ open class BaseChart @JvmOverloads constructor(
         }
 
         startIndex = 0
-        stopIndex = chartData.xValuesInDays.size
+        stopIndex = chartData.xValuesIn().size
 
+        yShouldVisible.clear()
         paints.clear()
         chartData.ys.forEachIndexed { index, ys ->
             val paint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -118,22 +126,24 @@ open class BaseChart @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
 
-            if (chartData.stacked) {
-                when (chartData.ys.first().type) {
-                    "bar" -> {
-                        for (stackedRect in chartLines) {
-                            drawRect(
-                                stackedRect.x,
-                                stackedRect.y,
-                                stackedRect.x2,
-                                stackedRect.y2,
-                                stackedRect.paint
-                            )
+            if (!noChartLines) {
+
+                if (chartData.stacked) {
+                    when (chartData.ys.first().type) {
+                        "bar" -> {
+                            for (stackedRect in chartLines) {
+                                drawRect(
+                                    stackedRect.x,
+                                    stackedRect.y,
+                                    stackedRect.x2,
+                                    stackedRect.y2,
+                                    stackedRect.paint
+                                )
+                            }
+                            return@apply
                         }
-                        return@apply
-                    }
-                    "area" -> {
-                        Log.d("area", "asa")
+                        "area" -> {
+                            Log.d("area", "asa")
 
 //                        paths.keys.forEachIndexed { index, yIndex ->
 //                            val path = paths[yIndex]!!
@@ -152,40 +162,66 @@ open class BaseChart @JvmOverloads constructor(
 //                            drawPath(path, paint)
 //                        }
 
+                        }
+                    }
+                }
+
+                for (index in 0 until chartLines.size) {
+                    val chartLine = chartLines[index]
+                    if (yShouldVisible[chartLine.yIndex] == false) continue
+                    when (chartLine.type) {
+                        "area", "line" -> {
+                            if (chartLine.xIndex > 0) {
+                                val prev = chartLines.subList(0, index)
+                                    .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
+                                if (prev.isNotEmpty()) {
+                                    val x1 = prev.last().x
+                                    val y1 = prev.last().y
+
+                                    //chartLine.paint.color = ContextCompat.getColor(context, R.color.legend_xy)
+
+                                    drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
+                                }
+                            }
+                        }
+                        "bar" -> {
+                            drawRect(
+                                chartLine.x,
+                                chartLine.y,
+                                chartLine.x2,
+                                chartLine.y2,
+                                chartLine.paint
+                            )
+                        }
                     }
                 }
             }
 
-            for (index in 0 until chartLines.size) {
-                val chartLine = chartLines[index]
-                if (yShouldVisible[chartLine.yIndex] == false) continue
-                when (chartLine.type) {
-                    "area", "line" -> {
-                        if (chartLine.xIndex > 0) {
-                            val prev = chartLines.subList(0, index)
-                                .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
-                            if (prev.isNotEmpty()) {
-                                val x1 = prev.last().x
-                                val y1 = prev.last().y
-
-                                //chartLine.paint.color = ContextCompat.getColor(context, R.color.legend_xy)
-
-                                drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
+            if (animationInProgress.compareAndSet(true, true) && newChartLines != null) {
+                for (index in 0 until newChartLines!!.size) {
+                    val chartLine = newChartLines!![index]
+                    when (chartLine.type) {
+                        "line" -> {
+                            if (chartLine.xIndex > 0) {
+                                val prev = newChartLines!!.subList(0, index)
+                                    .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
+                                if (prev.isNotEmpty()) {
+                                    val x1 = prev.last().x
+                                    val y1 = prev.last().y
+                                    drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
+                                }
                             }
                         }
                     }
-                    "bar" -> {
-                        drawRect(
-                            chartLine.x,
-                            chartLine.y,
-                            chartLine.x2,
-                            chartLine.y2,
-                            chartLine.paint
-                        )
-                    }
                 }
             }
+
+
         }
+    }
+
+    internal fun setNewChartLines(newChartLines: List<ChartLineExt>?) {
+        this.newChartLines = newChartLines
     }
 
     internal fun isInitialized(): Boolean {
@@ -200,6 +236,7 @@ open class BaseChart @JvmOverloads constructor(
     }
 
     internal fun getChartLinesExt(
+        chartData: ChartData,
         startIndex: Int,
         stopIndex: Int,
         minX: Long,
@@ -207,7 +244,7 @@ open class BaseChart @JvmOverloads constructor(
         yMinMaxValues: Map<Int, MinMaxValues>
     ): List<ChartLineExt> {
         val xScale = baseWidth / (maxX - minX).toFloat()
-        val result = LinkedList<ChartLineExt>()
+        val result = mutableListOf<ChartLineExt>()
 
         if (chartData.stacked) {
             val stackedType = chartData.ys.first().type
@@ -240,7 +277,7 @@ open class BaseChart @JvmOverloads constructor(
             }
 
             for (xIndex in startIndex until stopIndex) {
-                val xDays = chartData.xValuesInDays[xIndex]
+                val xDays = chartData.xValuesIn()[xIndex]
                 val xDate = chartData.xValues[xIndex]
                 val yValues = chartData.ys.map { it.yValues[xIndex] }
                 val mapYValue = mutableMapOf<Int, Long>()
@@ -342,7 +379,7 @@ open class BaseChart @JvmOverloads constructor(
             }
         } else {
             for (xIndex in startIndex until stopIndex) {
-                val xDays = chartData.xValuesInDays[xIndex]
+                val xDays = chartData.xValuesIn()[xIndex]
                 val xDate = chartData.xValues[xIndex]
                 for (yIndex in 0 until chartData.ys.size) {
                     val yValue = chartData.ys[yIndex]
@@ -434,7 +471,7 @@ open class BaseChart @JvmOverloads constructor(
         val yValue: Long,
         var x: Float,
         var y: Float,
-        val paint: Paint,
+        var paint: Paint,
         val type: String,
         val ys: List<YValue>,
         var x2: Float = 0f,
@@ -454,9 +491,9 @@ open class BaseChart @JvmOverloads constructor(
         const val CHART_STOKE_WIDTH = 2f
         const val CIRCLE_CHART_STOKE_WIDTH = 5f
         const val CIRCLE_CHART_RADIUS = 15f
-        const val LEGEND_RECT_STOKE_WIDTH = 5f
         const val TEXT_STROKE_WIDTH = 1f
         const val ANIMATION_DURATION: Long = 300
+        const val ANIMATION_REPLACING_DURATION: Long = 1000
         const val MINIMAL_DISTANCE = 50
         const val BAR_SIZE = 10
         const val MAGIC = 1.1f

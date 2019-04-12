@@ -14,6 +14,7 @@ class SourceDataConverter {
     fun getChartData(title: String, example: Example): ChartData {
         val xValues = mutableListOf<Date>()
         val xValuesInDays = mutableListOf<Long>()
+        val xValuesInHours = mutableListOf<Long>()
         val yValues = mutableListOf<YValue>()
         example.columns.forEachIndexed { index, element ->
             if (index == 0) {
@@ -21,6 +22,8 @@ class SourceDataConverter {
                 xValues.addAll(dates)
                 val inDays = dates.map { getDateAsDays(it.time) }
                 xValuesInDays.addAll(inDays)
+                val inHours = dates.map { getDateAsHours(it.time) }
+                xValuesInHours.addAll(inHours)
             } else {
                 val type = getTypes(element[0], example.types)
                 val name = getNames(element[0], example.names)
@@ -43,6 +46,7 @@ class SourceDataConverter {
             example.stacked ?: false,
             xValues,
             xValuesInDays,
+            xValuesInHours,
             yValues
         )
     }
@@ -112,6 +116,10 @@ class SourceDataConverter {
 
     private fun getDateAsDays(date: Long): Long {
         return date / (1000 * 60 * 60 * 24)
+    }
+
+    private fun getDateAsHours(date: Long): Long {
+        return date / (1000 * 60 * 60)
     }
 
 }

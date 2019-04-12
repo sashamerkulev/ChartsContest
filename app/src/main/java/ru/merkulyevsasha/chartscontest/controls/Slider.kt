@@ -1,5 +1,8 @@
 package ru.merkulyevsasha.chartscontest.controls
 
+import android.animation.Animator
+import android.animation.AnimatorSet
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
@@ -12,6 +15,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.XValuesEnum
 
 
 class Slider @JvmOverloads constructor(
@@ -81,8 +85,8 @@ class Slider @JvmOverloads constructor(
 
     override fun setData(chartData: ChartData) {
         super.setData(chartData)
-        maxXIndex = chartData.xValuesInDays.size
-        parts = maxXIndex / 5
+        maxXIndex = chartData.xValuesIn().size
+        parts = maxXIndex / if (chartData.xValuesIn == XValuesEnum.X_DAYS) 5 else 3
         initEndIndices()
     }
 
@@ -90,6 +94,80 @@ class Slider @JvmOverloads constructor(
         this.onActionIndicesChange = onActionIndicesChange
         this.onActionIndicesChange?.onActionIndicesChanged(startIndex, stopIndex)
     }
+
+    fun updateData(chartData: ChartData, newStartIndex: Int, newStopIndex: Int) {
+        val oldStartIndex = startIndex
+        val oldStopIndex = stopIndex
+        val oldMaxIndex = this.chartData.xValuesIn().size
+        super.setData(chartData)
+        maxXIndex = chartData.xValuesIn().size
+        parts = maxXIndex / if (chartData.xValuesIn == XValuesEnum.X_DAYS) 5 else 3
+//        setData(chartData)
+        calculateYScales()
+        xScale = baseWidth / (maxX - minX).toFloat()
+
+        if (animationInProgress.compareAndSet(true, false)) {
+            animatorSet?.cancel()
+            animatorSet = null
+        }
+
+        if (animationInProgress.compareAndSet(false, true)) {
+            animatorSet = AnimatorSet()
+            val animators = mutableListOf<Animator>()
+
+            val aaa = oldMaxIndex.toFloat() / oldStartIndex.toFloat()
+            val bbb = maxXIndex / aaa
+
+            val aaa1 = oldMaxIndex.toFloat() / oldStopIndex.toFloat()
+            val bbb1 = maxXIndex / aaa1
+
+            val startIndexAnimator = ValueAnimator.ofInt(bbb.toInt(), newStartIndex)
+            startIndexAnimator.addUpdateListener { value ->
+                value.animatedValue?.apply {
+                    startIndex = this as Int
+                    invalidate()
+                }
+            }
+            animators.add(startIndexAnimator)
+
+            val stopIndexAnimator = ValueAnimator.ofInt(bbb1.toInt(), newStopIndex)
+            stopIndexAnimator.addUpdateListener { value ->
+                value.animatedValue?.apply {
+                    stopIndex = this as Int
+                    invalidate()
+                }
+            }
+            animators.add(stopIndexAnimator)
+
+            animatorSet?.apply {
+                this.playTogether(animators)
+                this.duration = ANIMATION_REPLACING_DURATION
+                this.addListener(object : Animator.AnimatorListener {
+                    override fun onAnimationRepeat(animation: Animator?) {
+                    }
+
+                    override fun onAnimationEnd(animation: Animator?) {
+                        onAnimationEnd(startIndex, stopIndex)
+                    }
+
+                    override fun onAnimationCancel(animation: Animator?) {
+                        onAnimationEnd(startIndex, stopIndex)
+                    }
+
+                    override fun onAnimationStart(animation: Animator?) {
+                    }
+                })
+                this.start()
+            }
+        }
+    }
+
+    private fun onAnimationEnd(startIndex: Int, stopIndex: Int) {
+        animationInProgress.set(false)
+        this.startIndex = startIndex
+        this.stopIndex = stopIndex
+    }
+
 
     override fun onMeasureEnd() {
         calculateYScales()
@@ -102,7 +180,7 @@ class Slider @JvmOverloads constructor(
 
             if (!isInitialized()) return@apply
 
-            val xDays = chartData.xValuesInDays
+            val xDays = chartData.xValuesIn()
 
             x1 = (xDays[startIndex] - minX) * xScale
             x2 = (xDays[stopIndex - 1] - minX) * xScale

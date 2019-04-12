@@ -1,12 +1,15 @@
 package ru.merkulyevsasha.chartscontest.controls
 
 import android.content.Context
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.CardView
 import android.util.AttributeSet
 import android.view.LayoutInflater
+import android.view.View
 import kotlinx.android.synthetic.main.chart_layout.view.*
 import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.XValuesEnum
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -15,24 +18,33 @@ class ChartLayoutView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : CardView(context, attrs, defStyleAttr) {
 
+    private lateinit var oldChartData: ChartData
+    private lateinit var oldOnLegendClicked: OnLegendClicked
+    private lateinit var oldTitle: String
+
     init {
         val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         inflater.inflate(R.layout.chart_layout, this, true)
     }
 
-    fun setData(chartData: ChartData) {
-        chartTitle.text = chartData.title
+    fun setData(newChartData: ChartData, onLegendClicked: OnLegendClicked) {
+        chartTitle.text = newChartData.title
         chartCurrentPeriod.text = ""
 
-        chartXLegend.setData(chartData)
-        chartProgress.setData(chartData)
-        chart.setData(chartData)
-        slider.setData(chartData)
+        this.oldChartData = newChartData
+        this.oldOnLegendClicked = onLegendClicked
+
+        chartXLegend.setData(newChartData)
+        chartProgress.setData(newChartData)
+        chart.setData(newChartData)
+        slider.setData(newChartData)
+        chartLegend.setData(newChartData)
 
         chart.setDataChangeCallback(object : OnDataChange {
             override fun onDataChanged(
                 startIndex: Int,
                 stopIndex: Int,
+                chartData: ChartData,
                 minX: Long,
                 maxX: Long,
                 xScale: Float,
@@ -63,12 +75,20 @@ class ChartLayoutView @JvmOverloads constructor(
                     chartLines,
                     yShouldVisible
                 )
-                if (chartLines.size > 0) {
-                    val startDate = chartLines[0].xDate
-                    val stopDate = chartLines[chartLines.size - 1].xDate
-                    val pattern = "dd MMM yyyy"
-                    val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
-                    chartCurrentPeriod.text = "${dateFormat.format(startDate)} - ${dateFormat.format(stopDate)}"
+                if (chartLines.isNotEmpty()) {
+                    if (chartData.xValuesIn == XValuesEnum.X_DAYS) {
+                        val startDate = chartLines[0].xDate
+                        val stopDate = chartLines[chartLines.size - 1].xDate
+                        val pattern = "dd MMM yyyy"
+                        val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+                        oldTitle = "${dateFormat.format(startDate)} - ${dateFormat.format(stopDate)}"
+                        chartCurrentPeriod.text = oldTitle
+                    } else {
+                        val startDate = chartData.xValues.first()
+                        val pattern = "EEE dd MMM yyyy"
+                        val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+                        chartCurrentPeriod.text = dateFormat.format(startDate)
+                    }
                 }
             }
         })
@@ -87,9 +107,11 @@ class ChartLayoutView @JvmOverloads constructor(
             }
         })
 
+        chartLegend.setCallback(onLegendClicked)
+
         container.removeAllViews()
-        for (index in 0 until chartData.ys.size) {
-            val ys = chartData.ys[index]
+        for (index in 0 until newChartData.ys.size) {
+            val ys = newChartData.ys[index]
             val view = CheckboxView(context, ys.name, true, ys.color)
             view.setOnClickListener { _ ->
                 view.setCheck(!view.checked)
@@ -117,6 +139,51 @@ class ChartLayoutView @JvmOverloads constructor(
             result = result || view.checked
         }
         return result
+    }
+
+    fun show(chartData: ChartData) {
+        zoomOut.visibility = View.VISIBLE
+        chartTitle.text = context.getString(R.string.zoom_out_title)
+        chartTitle.setTextColor(ContextCompat.getColor(context, R.color.zoom_out))
+
+        val oldStartIndex = chart.startIndex
+        val oldStopIndex = chart.stopIndex
+
+        chartProgress.updateData(chartData)
+
+        chartLegend.setCallback(null)
+        chartLegend.updateData(chartData, 0, chartData.xValues.size)
+
+        if (chartData.xValues.isNotEmpty()) {
+            val startDate = chartData.xValues.first()
+            val pattern = "EEE dd MMM yyyy"
+            val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+            chartCurrentPeriod.text = dateFormat.format(startDate)
+        }
+
+        chart.updateData(chartData, 0, chartData.xValues.size)
+        slider.updateData(chartData, 0, chartData.xValues.size)
+        chartXLegend.updateData(chartData, 0, chartData.xValues.size)
+
+        zoomContainer.setOnClickListener {
+            zoomContainer.setOnClickListener { }
+
+            chartCurrentPeriod.text = oldTitle
+
+            zoomOut.visibility = View.GONE
+            chartTitle.text = oldChartData.title
+            chartTitle.setTextColor(ContextCompat.getColor(context, R.color.colorAccent))
+
+            chartLegend.updateData(oldChartData, oldStartIndex, oldStopIndex)
+            chartLegend.setCallback(oldOnLegendClicked)
+
+            chartProgress.updateData(oldChartData)
+
+            chart.updateData(oldChartData, oldStartIndex, oldStopIndex)
+            slider.updateData(oldChartData, oldStartIndex, oldStopIndex)
+            chartXLegend.updateData(oldChartData, oldStartIndex, oldStopIndex)
+        }
+
     }
 
 
