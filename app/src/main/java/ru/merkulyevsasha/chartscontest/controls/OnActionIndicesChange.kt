@@ -13,8 +13,8 @@ interface OnDataChange {
         minX: Long,
         maxX: Long,
         xScale: Float,
-        yMinMaxValues: List<BaseChart.MinMaxValues>,
-        yScale: List<Float>,
+        yMinMaxValues: Map<Int, BaseChart.MinMaxValues>,
+        yScale: Map<Int, Float>,
         chartLines: List<BaseChart.ChartLineExt>,
         yShouldVisible: Map<Int, Boolean>
     )

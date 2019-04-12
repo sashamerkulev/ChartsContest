@@ -3,11 +3,9 @@ package ru.merkulyevsasha.chartscontest.controls
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
-import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.models.YValue
 import java.util.*
@@ -23,7 +21,6 @@ open class BaseChart @JvmOverloads constructor(
     internal var maxX: Long = 0
     internal var minX: Long = 0
     internal var xScale: Float = 1f
-    //    internal var yScale: Float = 1f
     internal var startIndex: Int = 0
     internal var stopIndex: Int = 0
 
@@ -32,12 +29,8 @@ open class BaseChart @JvmOverloads constructor(
     internal val yShouldVisible = mutableMapOf<Int, Boolean>()
     internal val chartLines = mutableListOf<ChartLineExt>()
 
-    internal val yMinMaxValues = mutableListOf<MinMaxValues>()
-    internal val yScales = mutableListOf<Float>()
-
-    internal val stackedRects = mutableListOf<StackedRect>()
-    internal var stackedType = ""
-//    internal var paths = mutableMapOf<Int, Path>()
+    internal val yMinMaxValues = mutableMapOf<Int, MinMaxValues>()
+    internal val yScales = mutableMapOf<Int, Float>()
 
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
@@ -50,12 +43,12 @@ open class BaseChart @JvmOverloads constructor(
                 val yValue = chartData.ys[yIndex]
                 val min = yValue.yValues.min()!!
                 val max = yValue.yValues.max()!!
-                yMinMaxValues.add(MinMaxValues(min, max))
+                yMinMaxValues.put(yIndex, MinMaxValues(min, max))
             }
         } else {
             val min = chartData.getMinYs()
             val max = chartData.getMaxYs()
-            yMinMaxValues.add(MinMaxValues(min, max))
+            yMinMaxValues.put(0, MinMaxValues(min, max))
         }
 
         startIndex = 0
@@ -119,12 +112,12 @@ open class BaseChart @JvmOverloads constructor(
         canvas?.apply {
 
             if (chartData.stacked) {
-                when (stackedType) {
+                when (chartData.ys.first().type) {
                     "bar" -> {
-                        for (stackedRect in stackedRects) {
+                        for (stackedRect in chartLines) {
                             drawRect(
-                                stackedRect.x1,
-                                stackedRect.y1,
+                                stackedRect.x,
+                                stackedRect.y,
                                 stackedRect.x2,
                                 stackedRect.y2,
                                 stackedRect.paint
@@ -168,7 +161,7 @@ open class BaseChart @JvmOverloads constructor(
                                 val x1 = prev.last().x
                                 val y1 = prev.last().y
 
-                                chartLine.paint.color = ContextCompat.getColor(context, R.color.legend_xy)
+                                //chartLine.paint.color = ContextCompat.getColor(context, R.color.legend_xy)
 
                                 drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
                             }
@@ -183,8 +176,6 @@ open class BaseChart @JvmOverloads constructor(
                             chartLine.paint
                         )
                     }
-                    "area" -> {
-                    }
                 }
             }
         }
@@ -196,8 +187,8 @@ open class BaseChart @JvmOverloads constructor(
 
     internal fun calculateYScales() {
         for (index in 0 until yMinMaxValues.size) {
-            val yScale = baseHeight / (yMinMaxValues[index].max - yMinMaxValues[index].min).toFloat()
-            yScales.add(yScale)
+            val yScale = baseHeight / (yMinMaxValues[index]!!.max - yMinMaxValues[index]!!.min).toFloat()
+            yScales.put(index, yScale)
         }
     }
 
@@ -206,81 +197,72 @@ open class BaseChart @JvmOverloads constructor(
         stopIndex: Int,
         minX: Long,
         maxX: Long,
-        yMinMaxValues: List<MinMaxValues>
+        yMinMaxValues: Map<Int, MinMaxValues>
     ): List<ChartLineExt> {
         val xScale = baseWidth / (maxX - minX).toFloat()
-        val result = mutableListOf<ChartLineExt>()
-
-        for (xIndex in startIndex until stopIndex) {
-            val xDays = chartData.xValuesInDays[xIndex]
-            val xDate = chartData.xValues[xIndex]
-            for (yIndex in 0 until chartData.ys.size) {
-                val yValue = chartData.ys[yIndex]
-
-                val x1 = (xDays - minX) * xScale
-                var y1: Float
-                if (chartData.yScaled) {
-                    val scale = baseHeight / (yMinMaxValues[yIndex].max - yMinMaxValues[yIndex].min).toFloat()
-                    y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[yIndex].min) * scale
-                } else {
-                    val scale = baseHeight / (yMinMaxValues[0].max - yMinMaxValues[0].min).toFloat()
-                    y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[0].min) * scale
-                }
-
-                val chartPaint = paints[chartData.ys[yIndex].name]!!
-                val chartType = yValue.type
-
-                result.add(
-                    ChartLineExt(
-                        xIndex,
-                        yIndex,
-                        xDate,
-                        xDays,
-                        chartData.yScaled,
-                        yValue.yValues[xIndex],
-                        x1,
-                        y1,
-                        chartPaint,
-                        chartType,
-                        chartData.ys
-                    )
-                )
-            }
-        }
+        val result = LinkedList<ChartLineExt>()
 
         if (chartData.stacked) {
-            stackedRects.clear()
-            val groupedByX = result.groupBy { it.xIndex }
-//            paths.clear()
-            for (xIndex in groupedByX.keys) {
-                val xIndexes = groupedByX[xIndex]!!
-                val xFilteredByVisibility = xIndexes.filter { yShouldVisible[it.yIndex]!! }
-                val chartLine = xFilteredByVisibility.first()
-                stackedType = chartLine.type
+            for (xIndex in startIndex until stopIndex) {
+                val xDays = chartData.xValuesInDays[xIndex]
+                val xDate = chartData.xValues[xIndex]
+                val yValues = chartData.ys.map { it.yValues[xIndex] }
+                val mapYValue = mutableMapOf<Int, Long>()
+                for (yIndex in 0 until yValues.size) {
+                    mapYValue.put(yIndex, yValues[yIndex])
+                }
+                val stackedType = chartData.ys.first().type
                 when (stackedType) {
                     "bar" -> {
-                        val xSortedByYValue = xFilteredByVisibility.sortedByDescending { it.yValue }
-                        for (yIndex in 0 until xSortedByYValue.size) {
-                            val drawChartLine = xSortedByYValue[yIndex]
-                            if (yIndex == 0) {
-                                stackedRects.add(
-                                    StackedRect(
-                                        drawChartLine.x - BAR_SIZE / 2,
-                                        drawChartLine.y,
-                                        drawChartLine.x + BAR_SIZE / 2,
-                                        baseHeight,
-                                        drawChartLine.paint
+                        val sorted = mapYValue.toList().sortedByDescending { it.second }.toMap()
+                        val scale = baseHeight / (yMinMaxValues[0]!!.max ).toFloat()
+                        var maxValue = true
+                        var maxY = 0f
+                        for (yIndex in sorted.keys) {
+                            if (!yShouldVisible[yIndex]!!) continue
+
+                            val value = sorted[yIndex]!!
+                            val paint = paints[chartData.ys[yIndex].name]!!
+                            val x = (xDays - minX) * xScale
+                            val y = baseHeight - (value ) * scale
+
+                            if (maxValue) {
+                                maxValue = false
+                                maxY = y
+                                result.add(
+                                    ChartLineExt(
+                                        xIndex,
+                                        yIndex,
+                                        xDate,
+                                        xDays,
+                                        chartData.yScaled,
+                                        value,
+                                        x - BAR_SIZE / 2,
+                                        y,
+                                        paint,
+                                        stackedType,
+                                        chartData.ys,
+                                        x + BAR_SIZE / 2,
+                                        baseHeight
                                     )
                                 )
                             } else {
-                                val diff = baseHeight - drawChartLine.y
-                                stackedRects.add(
-                                    StackedRect(
-                                        drawChartLine.x - BAR_SIZE / 2,
-                                        chartLine.y,
-                                        drawChartLine.x + BAR_SIZE / 2,
-                                        chartLine.y + diff,
-                                        drawChartLine.paint
+                                val diff = baseHeight - y
+                                result.add(
+                                    ChartLineExt(
+                                        xIndex,
+                                        yIndex,
+                                        xDate,
+                                        xDays,
+                                        chartData.yScaled,
+                                        value,
+                                        x - BAR_SIZE / 2,
+                                        maxY,
+                                        paint,
+                                        stackedType,
+                                        chartData.ys,
+                                        x + BAR_SIZE / 2,
+                                        maxY + diff
                                     )
                                 )
                             }
@@ -325,8 +307,47 @@ open class BaseChart @JvmOverloads constructor(
 //                            path.lineTo(drawChartLine.x, y)
 //                        }
                     }
+
                 }
             }
+        } else {
+            for (xIndex in startIndex until stopIndex) {
+                val xDays = chartData.xValuesInDays[xIndex]
+                val xDate = chartData.xValues[xIndex]
+                for (yIndex in 0 until chartData.ys.size) {
+                    val yValue = chartData.ys[yIndex]
+
+                    val x1 = (xDays - minX) * xScale
+                    var y1: Float
+                    if (chartData.yScaled) {
+                        val scale = baseHeight / (yMinMaxValues[yIndex]!!.max - yMinMaxValues[yIndex]!!.min).toFloat()
+                        y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[yIndex]!!.min) * scale
+                    } else {
+                        val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
+                        y1 = baseHeight - (yValue.yValues[xIndex] - yMinMaxValues[0]!!.min) * scale
+                    }
+
+                    val chartPaint = paints[chartData.ys[yIndex].name]!!
+                    val chartType = yValue.type
+
+                    result.add(
+                        ChartLineExt(
+                            xIndex,
+                            yIndex,
+                            xDate,
+                            xDays,
+                            chartData.yScaled,
+                            yValue.yValues[xIndex],
+                            x1,
+                            y1,
+                            chartPaint,
+                            chartType,
+                            chartData.ys
+                        )
+                    )
+                }
+            }
+
         }
         return result
     }
@@ -360,20 +381,14 @@ open class BaseChart @JvmOverloads constructor(
         var y: Float,
         val paint: Paint,
         val type: String,
-        val ys: List<YValue>
+        val ys: List<YValue>,
+        var x2: Float = 0f,
+        var y2: Float = 0f
     )
 
     data class MinMaxValues(
         var min: Long,
         var max: Long
-    )
-
-    data class StackedRect(
-        val x1: Float,
-        val y1: Float,
-        val x2: Float,
-        val y2: Float,
-        val paint: Paint
     )
 
     companion object {
@@ -414,7 +429,5 @@ open class BaseChart @JvmOverloads constructor(
             }
             return reductionValue.toString()
         }
-
     }
-
 }

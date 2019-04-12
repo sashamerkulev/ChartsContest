@@ -36,8 +36,8 @@ class ChartLayoutView @JvmOverloads constructor(
                 minX: Long,
                 maxX: Long,
                 xScale: Float,
-                yMinMaxValues: List<BaseChart.MinMaxValues>,
-                yScale: List<Float>,
+                yMinMaxValues: Map<Int, BaseChart.MinMaxValues>,
+                yScale: Map<Int, Float>,
                 chartLines: List<BaseChart.ChartLineExt>,
                 yShouldVisible: Map<Int, Boolean>
             ) {
@@ -63,12 +63,13 @@ class ChartLayoutView @JvmOverloads constructor(
                     chartLines,
                     yShouldVisible
                 )
-
-                val startDate = chartLines[0].xDate
-                val stopDate = chartLines[chartLines.size - 1].xDate
-                val pattern = "dd MMM yyyy"
-                val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
-                chartCurrentPeriod.text = "${dateFormat.format(startDate)} - ${dateFormat.format(stopDate)}"
+                if (chartLines.size > 0) {
+                    val startDate = chartLines[0].xDate
+                    val stopDate = chartLines[chartLines.size - 1].xDate
+                    val pattern = "dd MMM yyyy"
+                    val dateFormat = SimpleDateFormat(pattern, Locale.getDefault())
+                    chartCurrentPeriod.text = "${dateFormat.format(startDate)} - ${dateFormat.format(stopDate)}"
+                }
             }
         })
 

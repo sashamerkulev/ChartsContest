@@ -34,8 +34,8 @@ class ChartLegend @JvmOverloads constructor(
     private var xScale: Float = 1f
     private var maxX: Long = 0
     private var minX: Long = 0
-    private var yMinMaxValues = mutableListOf<BaseChart.MinMaxValues>()
-    private var yScale = mutableListOf<Float>()
+    private var yMinMaxValues = mutableMapOf<Int, BaseChart.MinMaxValues>()
+    private var yScales = mutableMapOf<Int, Float>()
 
     private var startIndex: Int = 0
     private var stopIndex: Int = 0
@@ -142,8 +142,8 @@ class ChartLegend @JvmOverloads constructor(
         minX: Long,
         maxX: Long,
         xScale: Float,
-        yMinMaxValues: List<BaseChart.MinMaxValues>,
-        yScale: List<Float>,
+        yMinMaxValues: Map<Int, BaseChart.MinMaxValues>,
+        yScale: Map<Int, Float>,
         chartLines: List<BaseChart.ChartLineExt>,
         yShouldVisible: Map<Int, Boolean>
     ) {
@@ -154,9 +154,9 @@ class ChartLegend @JvmOverloads constructor(
         this.xScale = xScale
 
         this.yMinMaxValues.clear()
-        this.yMinMaxValues.addAll(yMinMaxValues)
-        this.yScale.clear()
-        this.yScale.addAll(yScale)
+        this.yMinMaxValues.putAll(yMinMaxValues)
+        this.yScales.clear()
+        this.yScales.putAll(yScale)
 
         this.chartLines.clear()
         this.chartLines.addAll(chartLines)
@@ -229,11 +229,11 @@ class ChartLegend @JvmOverloads constructor(
                         var min: Long
                         var pointY: Float
                         if (point.yScaled) {
-                            min = yMinMaxValues[index].min
-                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScale[index]
+                            min = yMinMaxValues[index]!!.min
+                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScales[index]!!
                         } else {
-                            min = yMinMaxValues[0].min
-                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScale[0]
+                            min = yMinMaxValues[0]!!.min
+                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScales[0]!!
                         }
 
                         paintCircle.color = yValue.color
@@ -241,8 +241,8 @@ class ChartLegend @JvmOverloads constructor(
                         this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintCircle)
                     }
                 } else if (point.type == "bar") {
-                    drawRect(0f, 0f, point.x - BAR_SIZE / 2, baseHeight, shadowRectPaint)
-                    drawRect(point.x + BAR_SIZE / 2, 0f, baseWidth, baseHeight, shadowRectPaint)
+                    drawRect(0f, 0f, point.x, baseHeight, shadowRectPaint)
+                    drawRect(point.x + BAR_SIZE, 0f, baseWidth, baseHeight, shadowRectPaint)
                 }
 
                 // draw legend rect

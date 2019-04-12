@@ -34,9 +34,9 @@ class ChartProgress @JvmOverloads constructor(
             val maxY = getMaxYAccordingToVisibility(0, chartData.xValues.size - 1)
             val yScale = baseHeight / (maxY - minY).toFloat()
             yMinMaxValues.clear()
-            yMinMaxValues.add(MinMaxValues(minY, maxY))
+            yMinMaxValues.put(0, MinMaxValues(minY, maxY))
             yScales.clear()
-            yScales.add(yScale)
+            yScales.put(0, yScale)
             chartLines.clear()
             chartLines.addAll(getChartLinesExt(startIndex, stopIndex, minX, maxX, yMinMaxValues))
         }
