@@ -227,15 +227,15 @@ open class BaseChart @JvmOverloads constructor(
                     mapYAvg.put(yIndex, avg[yIndex])
                     mapYMax.put(yIndex, max[yIndex])
                     mapYMin.put(yIndex, min[yIndex])
-                    areaYScale.put(yIndex, baseHeight / (max[yIndex] - min[yIndex]))
+                    areaYScale.put(yIndex, baseHeight / (max[yIndex]))
                 }
                 val avgSumma = mapYAvg.map { it.value }.sum()
                 val maxSumma = max.max()!!
                 val minSumma = min.sum()
                 prc = mapYAvg.mapValues { it.value * 100 / avgSumma }
-                for (yIndex in mapYAvg.keys) {
-                    System.out.println("area ->" + chartData.ys[yIndex].name + " - " + prc[yIndex].toString())
-                }
+//                for (yIndex in mapYAvg.keys) {
+//                    System.out.println("area -> ${chartData.ys[yIndex].name} - ${prc[yIndex]} - ${avg[yIndex]} - ${min[yIndex]} - ${max[yIndex]}")
+//                }
                 sortedArea = mapYAvg.toList().sortedByDescending { it.second }.toMap()
             }
 
@@ -304,12 +304,21 @@ open class BaseChart @JvmOverloads constructor(
                         }
                     }
                     "area" -> {
+//                        var yVals = 0f
+                        //System.out.println("area")
                         for (yIndex in sortedArea.keys) {
                             val paint = paints[chartData.ys[yIndex].name]!!
                             val value = mapYValue[yIndex]!!
                             val x = (xDays - minX) * xScale
-                            val y =
-                                baseHeight - (baseHeight - (value - mapYMin[yIndex]!!) * areaYScale[yIndex]!!) * prc[yIndex]!! / 100
+//                            val y =  ((baseHeight - value  * areaYScale[yIndex]!!) * prc[yIndex]!! / 100).toFloat()
+//                            yVals += y
+                            //System.out.println("area ->" + chartData.ys[yIndex].name +" procent " + prc[yIndex] + " height "+ baseHeight + " - " + yVals)
+
+                            //val y = yVals
+
+                            val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
+                            val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
+
                             result.add(
                                 ChartLineExt(
                                     xIndex,
@@ -319,14 +328,14 @@ open class BaseChart @JvmOverloads constructor(
                                     chartData.yScaled,
                                     value,
                                     x - BAR_SIZE / 2,
-                                    y.toFloat(),
+                                    y,
                                     paint,
                                     stackedType,
                                     chartData.ys
                                 )
                             )
                         }
-
+                        //System.out.println("area")
                     }
 
                 }
