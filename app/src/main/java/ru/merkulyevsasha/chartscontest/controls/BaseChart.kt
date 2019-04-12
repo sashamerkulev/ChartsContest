@@ -101,7 +101,9 @@ open class BaseChart @JvmOverloads constructor(
         //MUST CALL THIS
         setMeasuredDimension(baseWidth.toInt(), baseHeight.toInt())
 
-        if (::chartData.isInitialized) onMeasureEnd()
+        if (::chartData.isInitialized) {
+            onMeasureEnd()
+        }
     }
 
     open fun onMeasureEnd() {
@@ -215,7 +217,7 @@ open class BaseChart @JvmOverloads constructor(
                 when (stackedType) {
                     "bar" -> {
                         val sorted = mapYValue.toList().sortedByDescending { it.second }.toMap()
-                        val scale = baseHeight / (yMinMaxValues[0]!!.max ).toFloat()
+                        val scale = baseHeight / (yMinMaxValues[0]!!.max).toFloat()
                         var maxValue = true
                         var maxY = 0f
                         for (yIndex in sorted.keys) {
@@ -224,7 +226,7 @@ open class BaseChart @JvmOverloads constructor(
                             val value = sorted[yIndex]!!
                             val paint = paints[chartData.ys[yIndex].name]!!
                             val x = (xDays - minX) * xScale
-                            val y = baseHeight - (value ) * scale
+                            val y = baseHeight - (value) * scale
 
                             if (maxValue) {
                                 maxValue = false
@@ -269,43 +271,47 @@ open class BaseChart @JvmOverloads constructor(
                         }
                     }
                     "area" -> {
-//                        val groupedByY = result.groupBy { it.yIndex }
-//                        val sumByYIndex = groupedByY.mapValues {
-//                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.sum()
-//                        }
-//                        val minByYIndex = groupedByY.mapValues {
-//                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.min()
-//                        }
-//                        val maxByYIndex = groupedByY.mapValues {
-//                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.max()
-//                        }
-//                        val countByYIndex = groupedByY.mapValues {
-//                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.count()
-//                        }
-//                        val avgByYIndex = sumByYIndex.mapValues { sumByYIndex[it.key]!! / countByYIndex[it.key]!! }
-//                        val sum = avgByYIndex.map { it.value }.sum()
-//                        val prc =
-//                            avgByYIndex.mapValues { it.value * 100 / sum }
-//                        //val sortedPrc = prc.toList().sortedByDescending { it.second }.toMap()
-//
-//                        for (drawChartLine in xFilteredByVisibility) {
-//                            val yIndex = drawChartLine.yIndex
-//
-//                            val scale = baseHeight / (maxByYIndex[yIndex]!! - minByYIndex[yIndex]!!).toFloat()
-//                            val y = baseHeight - (drawChartLine.yValue - minByYIndex[yIndex]!!) * scale
-//
-//                            if (!paths.containsKey(drawChartLine.yIndex)) {
-//                                val path = Path()
-//                                path.moveTo(
-//                                    drawChartLine.x,
-//                                    y
-//                                )
-//                                paths.put(drawChartLine.yIndex, path)
-//                                continue
-//                            }
-//                            val path = paths[drawChartLine.yIndex]!!
-//                            path.lineTo(drawChartLine.x, y)
-//                        }
+                        val avg = chartData.ys.map { it.avg }
+                        val mapYAvg = mutableMapOf<Int, Double>()
+                        for (yIndex in 0 until avg.size) {
+                            if (!yShouldVisible[yIndex]!!) continue
+                            mapYAvg.put(yIndex, avg[yIndex])
+                        }
+                        val summa = mapYAvg.map { it.value }.sum()
+                        val prc = mapYAvg.mapValues { it.value * 100 / summa }
+
+                        val sorted = mapYAvg.toList().sortedByDescending { it.second }.toMap()
+                        var pppp = 0.0
+                        for (yIndex in sorted.keys) {
+                            val value = mapYValue[yIndex]!!
+                            val x = (xDays - minX) * xScale
+                            //pppp += prc[yIndex]!!
+//                            pppp = prc[yIndex]!!
+//                            System.out.println("area ->" + chartData.ys[yIndex].name + " - " + prc[yIndex].toString() + " - " + pppp.toString())
+//                            val scale = (baseHeight * pppp / 100) / (mapYAvg[yIndex]!! )
+//                            val y = (Math.abs(value - mapYAvg[yIndex]!!)) * scale
+
+                            val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
+                            val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
+
+                            val paint = paints[chartData.ys[yIndex].name]!!
+                            result.add(
+                                ChartLineExt(
+                                    xIndex,
+                                    yIndex,
+                                    xDate,
+                                    xDays,
+                                    chartData.yScaled,
+                                    value,
+                                    x - BAR_SIZE / 2,
+                                    y.toFloat(),
+                                    paint,
+                                    stackedType,
+                                    chartData.ys
+                                )
+                            )
+                        }
+
                     }
 
                 }

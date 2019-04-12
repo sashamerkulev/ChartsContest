@@ -25,11 +25,13 @@ class SourceDataConverter {
                 val type = getTypes(element[0], example.types)
                 val name = getNames(element[0], example.names)
                 val color = getColor(element[0], example.colors)
+                val yLongValues = getValues(element)
                 val yVal = YValue(
-                    getValues(element),
+                    yLongValues,
                     type,
                     name,
-                    color
+                    color,
+                    yLongValues.average()
                 )
                 yValues.add(yVal)
             }
