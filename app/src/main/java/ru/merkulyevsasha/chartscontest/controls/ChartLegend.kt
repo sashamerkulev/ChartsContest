@@ -210,15 +210,15 @@ class ChartLegend @JvmOverloads constructor(
                 if (point.type == "line") {
                     this.drawLine(point.x, 0f, point.x, baseHeight, paintTopBottomLine)
                     // draw circles
-                    for (index in 0 until point.ys.size) {
-                        if (!yShouldVisible[index]!!) continue
-                        val yValue = point.ys[index]
+                    for (yIndex in 0 until point.ys.size) {
+                        if (!yShouldVisible[yIndex]!!) continue
+                        val yValue = point.ys[yIndex]
 
                         var min: Long
                         var pointY: Float
                         if (point.yScaled) {
-                            min = yMinMaxValues[index]!!.min
-                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScales[index]!!
+                            min = yMinMaxValues[yIndex]!!.min
+                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScales[yIndex]!!
                         } else {
                             min = yMinMaxValues[0]!!.min
                             pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScales[0]!!
@@ -328,6 +328,17 @@ class ChartLegend @JvmOverloads constructor(
     }
 
     private fun showLegend(x: Float, y: Float) {
+
+        if (isShow && newLegendData != null) {
+            if (x in newLegendData!!.position.x..newLegendData!!.position.x + newLegendData!!.sizes.width
+                && y in newLegendData!!.position.y..newLegendData!!.position.y + newLegendData!!.sizes.height
+            ) {
+                isShow = false
+                invalidate()
+                return
+            }
+        }
+
         nearestPoint = findMinimalDistancePoint(x, y)
         isShow = nearestPoint != null
 
@@ -338,7 +349,6 @@ class ChartLegend @JvmOverloads constructor(
             lastLegendData = legendData
             newLegendData = legendData
         }
-
         invalidate()
     }
 

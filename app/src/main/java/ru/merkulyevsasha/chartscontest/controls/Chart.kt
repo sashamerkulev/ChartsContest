@@ -241,11 +241,14 @@ open class Chart @JvmOverloads constructor(
     private fun recalculateYScales() {
         if (chartData.yScaled) {
             yMinMaxValues.clear()
+            yScales.clear()
             for (yIndex in 0 until chartData.ys.size) {
                 val yValue = chartData.ys[yIndex]
                 val min = yValue.yValues.subList(startIndex, stopIndex).min()!!
                 val max = yValue.yValues.subList(startIndex, stopIndex).max()!!
                 yMinMaxValues.put(yIndex, MinMaxValues(min, max))
+                val yScale = baseHeight / (max - min).toFloat()
+                yScales.put(yIndex, yScale)
             }
         } else {
             val minY = getMinYAccordingToVisibility(startIndex, stopIndex)
