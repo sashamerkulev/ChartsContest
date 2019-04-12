@@ -3,7 +3,6 @@ package ru.merkulyevsasha.chartscontest.controls
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.Path
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.util.Log
@@ -38,7 +37,7 @@ open class BaseChart @JvmOverloads constructor(
 
     internal val stackedRects = mutableListOf<StackedRect>()
     internal var stackedType = ""
-    internal var paths = mutableMapOf<Int, Path>()
+//    internal var paths = mutableMapOf<Int, Path>()
 
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
@@ -136,22 +135,22 @@ open class BaseChart @JvmOverloads constructor(
                     "area" -> {
                         Log.d("area", "asa")
 
-                        paths.keys.forEachIndexed { index, yIndex ->
-                            val path = paths[yIndex]!!
-                            if (index == 0) {
-//                                path.lineTo(baseWidth, baseHeight)
-//                                path.lineTo(0f, baseHeight)
-//                                path.close()
-                            } else if (index == paths.keys.size - 1) {
-//                                path.lineTo(baseWidth, 0f)
-//                                path.lineTo(0f, 0f)
-//                                path.close()
-                            } else {
-
-                            }
-                            val paint = paints[chartData.ys[index].name]!!
-                            drawPath(path, paint)
-                        }
+//                        paths.keys.forEachIndexed { index, yIndex ->
+//                            val path = paths[yIndex]!!
+//                            if (index == 0) {
+////                                path.lineTo(baseWidth, baseHeight)
+////                                path.lineTo(0f, baseHeight)
+////                                path.close()
+//                            } else if (index == paths.keys.size - 1) {
+////                                path.lineTo(baseWidth, 0f)
+////                                path.lineTo(0f, 0f)
+////                                path.close()
+//                            } else {
+//
+//                            }
+//                            val paint = paints[chartData.ys[index].name]!!
+//                            drawPath(path, paint)
+//                        }
 
                     }
                 }
@@ -252,7 +251,7 @@ open class BaseChart @JvmOverloads constructor(
         if (chartData.stacked) {
             stackedRects.clear()
             val groupedByX = result.groupBy { it.xIndex }
-            paths.clear()
+//            paths.clear()
             for (xIndex in groupedByX.keys) {
                 val xIndexes = groupedByX[xIndex]!!
                 val xFilteredByVisibility = xIndexes.filter { yShouldVisible[it.yIndex]!! }
@@ -288,43 +287,43 @@ open class BaseChart @JvmOverloads constructor(
                         }
                     }
                     "area" -> {
-                        val groupedByY = result.groupBy { it.yIndex }
-                        val sumByYIndex = groupedByY.mapValues {
-                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.sum()
-                        }
-                        val minByYIndex = groupedByY.mapValues {
-                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.min()
-                        }
-                        val maxByYIndex = groupedByY.mapValues {
-                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.max()
-                        }
-                        val countByYIndex = groupedByY.mapValues {
-                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.count()
-                        }
-                        val avgByYIndex = sumByYIndex.mapValues { sumByYIndex[it.key]!! / countByYIndex[it.key]!! }
-                        val sum = avgByYIndex.map { it.value }.sum()
-                        val prc =
-                            avgByYIndex.mapValues { it.value * 100 / sum }
-                        //val sortedPrc = prc.toList().sortedByDescending { it.second }.toMap()
-
-                        for (drawChartLine in xFilteredByVisibility) {
-                            val yIndex = drawChartLine.yIndex
-
-                            val scale = baseHeight / (maxByYIndex[yIndex]!! - minByYIndex[yIndex]!!).toFloat()
-                            val y = baseHeight - (drawChartLine.yValue - minByYIndex[yIndex]!!) * scale
-
-                            if (!paths.containsKey(drawChartLine.yIndex)) {
-                                val path = Path()
-                                path.moveTo(
-                                    drawChartLine.x,
-                                    y
-                                )
-                                paths.put(drawChartLine.yIndex, path)
-                                continue
-                            }
-                            val path = paths[drawChartLine.yIndex]!!
-                            path.lineTo(drawChartLine.x, y)
-                        }
+//                        val groupedByY = result.groupBy { it.yIndex }
+//                        val sumByYIndex = groupedByY.mapValues {
+//                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.sum()
+//                        }
+//                        val minByYIndex = groupedByY.mapValues {
+//                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.min()
+//                        }
+//                        val maxByYIndex = groupedByY.mapValues {
+//                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.max()
+//                        }
+//                        val countByYIndex = groupedByY.mapValues {
+//                            it.value.filter { yShouldVisible[it.yIndex]!! }.map { it.yValue }.count()
+//                        }
+//                        val avgByYIndex = sumByYIndex.mapValues { sumByYIndex[it.key]!! / countByYIndex[it.key]!! }
+//                        val sum = avgByYIndex.map { it.value }.sum()
+//                        val prc =
+//                            avgByYIndex.mapValues { it.value * 100 / sum }
+//                        //val sortedPrc = prc.toList().sortedByDescending { it.second }.toMap()
+//
+//                        for (drawChartLine in xFilteredByVisibility) {
+//                            val yIndex = drawChartLine.yIndex
+//
+//                            val scale = baseHeight / (maxByYIndex[yIndex]!! - minByYIndex[yIndex]!!).toFloat()
+//                            val y = baseHeight - (drawChartLine.yValue - minByYIndex[yIndex]!!) * scale
+//
+//                            if (!paths.containsKey(drawChartLine.yIndex)) {
+//                                val path = Path()
+//                                path.moveTo(
+//                                    drawChartLine.x,
+//                                    y
+//                                )
+//                                paths.put(drawChartLine.yIndex, path)
+//                                continue
+//                            }
+//                            val path = paths[drawChartLine.yIndex]!!
+//                            path.lineTo(drawChartLine.x, y)
+//                        }
                     }
                 }
             }
