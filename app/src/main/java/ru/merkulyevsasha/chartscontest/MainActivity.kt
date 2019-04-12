@@ -84,7 +84,7 @@ class MainActivity : AppCompatActivity(), IMainView {
     }
 
     override fun showCharts(chartData: List<ChartData>) {
-        for (index in 0 until chartData.size) {
+        for (index in 0 until charts.size) {
             charts[index].setData(chartData[index])
         }
     }

@@ -32,6 +32,8 @@ open class BaseChart @JvmOverloads constructor(
     internal val yMinMaxValues = mutableMapOf<Int, MinMaxValues>()
     internal val yScales = mutableMapOf<Int, Float>()
 
+    private var onMeasureCalling = true
+
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
 
@@ -101,8 +103,11 @@ open class BaseChart @JvmOverloads constructor(
         //MUST CALL THIS
         setMeasuredDimension(baseWidth.toInt(), baseHeight.toInt())
 
-        if (::chartData.isInitialized) {
-            onMeasureEnd()
+        if (isInitialized()) {
+            if (onMeasureCalling) {
+                onMeasureCalling = false
+                onMeasureEnd()
+            }
         }
     }
 
@@ -171,9 +176,9 @@ open class BaseChart @JvmOverloads constructor(
                     }
                     "bar" -> {
                         drawRect(
-                            chartLine.x - BAR_SIZE / 2,
+                            chartLine.x,
                             chartLine.y,
-                            chartLine.x + BAR_SIZE / 2,
+                            chartLine.x + BAR_SIZE,
                             baseHeight,
                             chartLine.paint
                         )
@@ -279,7 +284,9 @@ open class BaseChart @JvmOverloads constructor(
                         }
                         val summa = mapYAvg.map { it.value }.sum()
                         val prc = mapYAvg.mapValues { it.value * 100 / summa }
-
+                        for (yIndex in mapYAvg.keys) {
+                            System.out.println("area ->" + chartData.ys[yIndex].name + " - " + prc[yIndex].toString() + " - " + prc[yIndex]!!.toString())
+                        }
                         val sorted = mapYAvg.toList().sortedByDescending { it.second }.toMap()
                         var pppp = 0.0
                         for (yIndex in sorted.keys) {

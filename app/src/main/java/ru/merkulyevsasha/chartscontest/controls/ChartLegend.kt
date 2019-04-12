@@ -216,11 +216,6 @@ class ChartLegend @JvmOverloads constructor(
                 // vertical line
                 if (point.type == "line") {
                     this.drawLine(point.x, 0f, point.x, baseHeight, paintTopBottomLine)
-                } else if (point.type == "bar") {
-
-                }
-
-                if (point.type == "line") {
                     // draw circles
                     for (index in 0 until point.ys.size) {
                         if (!yShouldVisible[index]!!) continue
