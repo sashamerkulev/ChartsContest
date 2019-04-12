@@ -239,7 +239,15 @@ open class Chart @JvmOverloads constructor(
     }
 
     private fun recalculateYScales() {
-        if (!chartData.yScaled) {
+        if (chartData.yScaled) {
+            yMinMaxValues.clear()
+            for (yIndex in 0 until chartData.ys.size) {
+                val yValue = chartData.ys[yIndex]
+                val min = yValue.yValues.subList(startIndex, stopIndex).min()!!
+                val max = yValue.yValues.subList(startIndex, stopIndex).max()!!
+                yMinMaxValues.put(yIndex, MinMaxValues(min, max))
+            }
+        } else {
             val minY = getMinYAccordingToVisibility(startIndex, stopIndex)
             val maxY = getMaxYAccordingToVisibility(startIndex, stopIndex)
             val yScale = baseHeight / (maxY - minY).toFloat()
@@ -257,7 +265,7 @@ open class Chart @JvmOverloads constructor(
         }
     }
 
-    private fun animationEnd(startIndex: Int, stopIndex: Int, newChartLines: List<ChartLineExt>) {
+    private fun animationEnd(startIndex: Int, stopIndex: Int, newChartLines: List<BaseChart.ChartLineExt>) {
         this.startIndex = startIndex
         this.stopIndex = stopIndex
         animationInProgress.set(false)
