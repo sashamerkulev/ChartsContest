@@ -210,6 +210,35 @@ open class BaseChart @JvmOverloads constructor(
         val result = LinkedList<ChartLineExt>()
 
         if (chartData.stacked) {
+            val stackedType = chartData.ys.first().type
+
+            var sortedArea: Map<Int, Double> = mutableMapOf()
+            var prc: Map<Int, Double> = mutableMapOf()
+            val areaYScale = mutableMapOf<Int, Float>()
+            val mapYMin = mutableMapOf<Int, Long>()
+            if (stackedType == "area") {
+                val avg = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).average() }
+                val max = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).max()!! }
+                val min = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).min()!! }
+                val mapYAvg = mutableMapOf<Int, Double>()
+                val mapYMax = mutableMapOf<Int, Long>()
+                for (yIndex in 0 until avg.size) {
+                    if (!yShouldVisible[yIndex]!!) continue
+                    mapYAvg.put(yIndex, avg[yIndex])
+                    mapYMax.put(yIndex, max[yIndex])
+                    mapYMin.put(yIndex, min[yIndex])
+                    areaYScale.put(yIndex, baseHeight / (max[yIndex] - min[yIndex]))
+                }
+                val avgSumma = mapYAvg.map { it.value }.sum()
+                val maxSumma = max.max()!!
+                val minSumma = min.sum()
+                prc = mapYAvg.mapValues { it.value * 100 / avgSumma }
+                for (yIndex in mapYAvg.keys) {
+                    System.out.println("area ->" + chartData.ys[yIndex].name + " - " + prc[yIndex].toString())
+                }
+                sortedArea = mapYAvg.toList().sortedByDescending { it.second }.toMap()
+            }
+
             for (xIndex in startIndex until stopIndex) {
                 val xDays = chartData.xValuesInDays[xIndex]
                 val xDate = chartData.xValues[xIndex]
@@ -218,17 +247,16 @@ open class BaseChart @JvmOverloads constructor(
                 for (yIndex in 0 until yValues.size) {
                     mapYValue.put(yIndex, yValues[yIndex])
                 }
-                val stackedType = chartData.ys.first().type
                 when (stackedType) {
                     "bar" -> {
-                        val sorted = mapYValue.toList().sortedByDescending { it.second }.toMap()
+                        val sortedBar = mapYValue.toList().sortedByDescending { it.second }.toMap()
                         val scale = baseHeight / (yMinMaxValues[0]!!.max).toFloat()
                         var maxValue = true
                         var maxY = 0f
-                        for (yIndex in sorted.keys) {
+                        for (yIndex in sortedBar.keys) {
                             if (!yShouldVisible[yIndex]!!) continue
 
-                            val value = sorted[yIndex]!!
+                            val value = sortedBar[yIndex]!!
                             val paint = paints[chartData.ys[yIndex].name]!!
                             val x = (xDays - minX) * xScale
                             val y = baseHeight - (value) * scale
@@ -276,32 +304,12 @@ open class BaseChart @JvmOverloads constructor(
                         }
                     }
                     "area" -> {
-                        val avg = chartData.ys.map { it.avg }
-                        val mapYAvg = mutableMapOf<Int, Double>()
-                        for (yIndex in 0 until avg.size) {
-                            if (!yShouldVisible[yIndex]!!) continue
-                            mapYAvg.put(yIndex, avg[yIndex])
-                        }
-                        val summa = mapYAvg.map { it.value }.sum()
-                        val prc = mapYAvg.mapValues { it.value * 100 / summa }
-                        for (yIndex in mapYAvg.keys) {
-                            System.out.println("area ->" + chartData.ys[yIndex].name + " - " + prc[yIndex].toString() + " - " + prc[yIndex]!!.toString())
-                        }
-                        val sorted = mapYAvg.toList().sortedByDescending { it.second }.toMap()
-                        var pppp = 0.0
-                        for (yIndex in sorted.keys) {
+                        for (yIndex in sortedArea.keys) {
+                            val paint = paints[chartData.ys[yIndex].name]!!
                             val value = mapYValue[yIndex]!!
                             val x = (xDays - minX) * xScale
-                            //pppp += prc[yIndex]!!
-//                            pppp = prc[yIndex]!!
-//                            System.out.println("area ->" + chartData.ys[yIndex].name + " - " + prc[yIndex].toString() + " - " + pppp.toString())
-//                            val scale = (baseHeight * pppp / 100) / (mapYAvg[yIndex]!! )
-//                            val y = (Math.abs(value - mapYAvg[yIndex]!!)) * scale
-
-                            val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
-                            val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
-
-                            val paint = paints[chartData.ys[yIndex].name]!!
+                            val y =
+                                baseHeight - (baseHeight - (value - mapYMin[yIndex]!!) * areaYScale[yIndex]!!) * prc[yIndex]!! / 100
                             result.add(
                                 ChartLineExt(
                                     xIndex,
@@ -362,7 +370,7 @@ open class BaseChart @JvmOverloads constructor(
                         )
                     } else if (yValue.type == "bar") {
                         val scale = baseHeight / (yMinMaxValues[0]!!.max).toFloat()
-                        val y1 = baseHeight - (yValue.yValues[xIndex] ) * scale
+                        val y1 = baseHeight - (yValue.yValues[xIndex]) * scale
 
                         result.add(
                             ChartLineExt(
@@ -372,12 +380,12 @@ open class BaseChart @JvmOverloads constructor(
                                 xDays,
                                 chartData.yScaled,
                                 yValue.yValues[xIndex],
-                                x1 - BAR_SIZE/2,
+                                x1 - BAR_SIZE / 2,
                                 y1,
                                 chartPaint,
                                 chartType,
                                 chartData.ys,
-                                x1 + BAR_SIZE/2,
+                                x1 + BAR_SIZE / 2,
                                 baseHeight
                             )
                         )
