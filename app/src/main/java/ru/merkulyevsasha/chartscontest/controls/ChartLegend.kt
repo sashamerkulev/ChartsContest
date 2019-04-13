@@ -267,13 +267,26 @@ class ChartLegend @JvmOverloads constructor(
                     newLegendData!!.position.y + newLegendData!!.sizes.height,
                     legendFillRectPaint
                 )
-//                this.drawRect(
-//                    newLegendData!!.position.x,
-//                    newLegendData!!.position.y,
-//                    newLegendData!!.position.x + newLegendData!!.sizes.width,
-//                    newLegendData!!.position.y + newLegendData!!.sizes.height,
-//                    legendRectPaint
-//                )
+
+                // draw chevron
+                if (chartData.xValuesIn == XValuesEnum.X_DAYS) {
+                    val xChevron = newLegendData!!.position.x + newLegendData!!.sizes.width - pxLegendTextPadding
+                    val yChevron = newLegendData!!.position.y + pxLegendTextPadding
+                    this.drawLine(
+                        xChevron,
+                        yChevron + 15,
+                        xChevron - 15,
+                        yChevron,
+                        paintTopBottomLine
+                    )
+                    this.drawLine(
+                        xChevron,
+                        yChevron + 15,
+                        xChevron - 15,
+                        yChevron + 30,
+                        paintTopBottomLine
+                    )
+                }
 
                 // draw legend title (week/day month/year and shevron icon)
                 this.drawText(
