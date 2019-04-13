@@ -256,7 +256,7 @@ class ChartLegend @JvmOverloads constructor(
                     }
                 } else if (point.type == ChartTypeEnum.BAR) {
                     drawRect(0f, 0f, point.x, baseHeight, shadowRectPaint)
-                    drawRect(point.x + BAR_SIZE, 0f, baseWidth, baseHeight, shadowRectPaint)
+                    drawRect(point.x + point.barSize, 0f, baseWidth, baseHeight, shadowRectPaint)
                 }
 
                 // draw legend rect
@@ -365,9 +365,9 @@ class ChartLegend @JvmOverloads constructor(
                 leftX = 10f
             }
         } else if (point.type == ChartTypeEnum.BAR) {
-            leftX = point.x - widthLegendBox - BAR_SIZE - BAR_SIZE / 2
+            leftX = point.x - widthLegendBox - point.barSize * 1.5f
             if (leftX <= 0) {
-                leftX = point.x + BAR_SIZE + BAR_SIZE / 2
+                leftX = point.x + point.barSize * 2f
             }
             if (leftX + widthLegendBox > baseWidth) {
                 leftX = baseWidth - widthLegendBox - 10f
@@ -486,7 +486,8 @@ class ChartLegend @JvmOverloads constructor(
                         chartLine.xIndex,
                         chartLine.yScaled,
                         chartLine.ys,
-                        chartLine.type
+                        chartLine.type,
+                        chartLine.barSize
                     )
                 )
             } else if (chartLine.type == ChartTypeEnum.BAR) {
@@ -499,19 +500,21 @@ class ChartLegend @JvmOverloads constructor(
                         chartLine.xIndex,
                         chartLine.yScaled,
                         chartLine.ys,
-                        chartLine.type
+                        chartLine.type,
+                        chartLine.barSize
                     )
                 )
                 distances.add(
                     Distance(
-                        Math.abs(chartLine.x + BAR_SIZE - x),
+                        Math.abs(chartLine.x + chartLine.barSize - x),
                         Math.abs(chartLine.y - y),
                         chartLine.xDate,
                         chartLine.x,
                         chartLine.xIndex,
                         chartLine.yScaled,
                         chartLine.ys,
-                        chartLine.type
+                        chartLine.type,
+                        chartLine.barSize
                     )
                 )
             }
@@ -542,7 +545,8 @@ class ChartLegend @JvmOverloads constructor(
         val xIndex: Int,
         val yScaled: Boolean,
         val ys: List<YValue>,
-        val type: ChartTypeEnum
+        val type: ChartTypeEnum,
+        val barSize: Float
     )
 
     data class LegendSizes(

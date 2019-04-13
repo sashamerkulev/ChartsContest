@@ -42,6 +42,8 @@ open class BaseChart @JvmOverloads constructor(
 
     private var onMeasureCalling = true
 
+    private var barSize = -1
+
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
 
@@ -257,14 +259,18 @@ open class BaseChart @JvmOverloads constructor(
         val xScale = baseWidth / (maxX - minX).toFloat()
         val result = mutableListOf<ChartLineExt>()
 
+        val x1 = (chartData.xValuesIn()[0] - minX) * xScale
+        val x2 = (chartData.xValuesIn()[1] - minX) * xScale
+        val barSize = x2 - x1
+
         if (chartData.stacked) {
-            val stackedType = chartData.ys.first().type
+            val stackedChartType = chartData.ys.first().type
 
             var sortedArea: Map<Int, Double> = mutableMapOf()
             var prc: Map<Int, Double> = mutableMapOf()
             val areaYScale = mutableMapOf<Int, Float>()
             val mapYMin = mutableMapOf<Int, Long>()
-            if (stackedType == ChartTypeEnum.AREA) {
+            if (stackedChartType == ChartTypeEnum.AREA) {
                 val avg = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).average() }
                 val max = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).max()!! }
                 val min = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).min()!! }
@@ -290,83 +296,27 @@ open class BaseChart @JvmOverloads constructor(
             for (xIndex in startIndex until stopIndex) {
                 val xDays = chartData.xValuesIn()[xIndex]
                 val xDate = chartData.xValues[xIndex]
+                val x = (xDays - minX) * xScale
                 val yValues = chartData.ys.map { it.yValues[xIndex] }
                 val mapYValue = mutableMapOf<Int, Long>()
                 for (yIndex in 0 until yValues.size) {
                     mapYValue.put(yIndex, yValues[yIndex])
                 }
-                when (stackedType) {
-                    ChartTypeEnum.BAR -> {
-                        val sortedBar = mapYValue.toList().sortedByDescending { it.second }.toMap()
-                        val scale = baseHeight / (yMinMaxValues[0]!!.max).toFloat()
-                        var maxValue = true
-                        var maxY = 0f
-                        for (yIndex in sortedBar.keys) {
-                            if (!yShouldVisible[yIndex]!!) continue
+                if (stackedChartType == ChartTypeEnum.BAR) {
+                    val sortedBar = mapYValue.toList().sortedByDescending { it.second }.toMap()
+                    val scale = baseHeight / (yMinMaxValues[0]!!.max).toFloat()
+                    var maxValue = true
+                    var maxY = 0f
+                    for (yIndex in sortedBar.keys) {
+                        if (!yShouldVisible[yIndex]!!) continue
 
-                            val value = sortedBar[yIndex]!!
-                            val paint = paints[chartData.ys[yIndex].name]!!
-                            val x = (xDays - minX) * xScale
-                            val y = baseHeight - (value) * scale
+                        val value = sortedBar[yIndex]!!
+                        val paint = paints[chartData.ys[yIndex].name]!!
+                        val y = baseHeight - (value) * scale
 
-                            if (maxValue) {
-                                maxValue = false
-                                maxY = y
-                                result.add(
-                                    ChartLineExt(
-                                        xIndex,
-                                        yIndex,
-                                        xDate,
-                                        xDays,
-                                        chartData.yScaled,
-                                        value,
-                                        x - BAR_SIZE / 2,
-                                        y,
-                                        paint,
-                                        stackedType,
-                                        chartData.ys,
-                                        x + BAR_SIZE / 2,
-                                        baseHeight
-                                    )
-                                )
-                            } else {
-                                val diff = baseHeight - y
-                                result.add(
-                                    ChartLineExt(
-                                        xIndex,
-                                        yIndex,
-                                        xDate,
-                                        xDays,
-                                        chartData.yScaled,
-                                        value,
-                                        x - BAR_SIZE / 2,
-                                        maxY,
-                                        paint,
-                                        stackedType,
-                                        chartData.ys,
-                                        x + BAR_SIZE / 2,
-                                        maxY + diff
-                                    )
-                                )
-                            }
-                        }
-                    }
-                    ChartTypeEnum.AREA -> {
-//                        var yVals = 0f
-                        //System.out.println("area")
-                        for (yIndex in sortedArea.keys) {
-                            val paint = paints[chartData.ys[yIndex].name]!!
-                            val value = mapYValue[yIndex]!!
-                            val x = (xDays - minX) * xScale
-//                            val y =  ((baseHeight - value  * areaYScale[yIndex]!!) * prc[yIndex]!! / 100).toFloat()
-//                            yVals += y
-                            //System.out.println("area ->" + chartData.ys[yIndex].name +" procent " + prc[yIndex] + " height "+ baseHeight + " - " + yVals)
-
-                            //val y = yVals
-
-                            val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
-                            val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
-
+                        if (maxValue) {
+                            maxValue = false
+                            maxY = y
                             result.add(
                                 ChartLineExt(
                                     xIndex,
@@ -375,17 +325,73 @@ open class BaseChart @JvmOverloads constructor(
                                     xDays,
                                     chartData.yScaled,
                                     value,
-                                    x - BAR_SIZE / 2,
+                                    x - barSize / 2,
                                     y,
                                     paint,
-                                    stackedType,
-                                    chartData.ys
+                                    stackedChartType,
+                                    chartData.ys,
+                                    x + barSize / 2,
+                                    baseHeight,
+                                    barSize = barSize
+                                )
+                            )
+                        } else {
+                            val diff = baseHeight - y
+                            result.add(
+                                ChartLineExt(
+                                    xIndex,
+                                    yIndex,
+                                    xDate,
+                                    xDays,
+                                    chartData.yScaled,
+                                    value,
+                                    x - barSize / 2,
+                                    maxY,
+                                    paint,
+                                    stackedChartType,
+                                    chartData.ys,
+                                    x + barSize / 2,
+                                    maxY + diff,
+                                    barSize = barSize
                                 )
                             )
                         }
-                        //System.out.println("area")
                     }
+                }
+                else if (stackedChartType == ChartTypeEnum.AREA) {
+            //                        var yVals = 0f
+                    //System.out.println("area")
+                    for (yIndex in sortedArea.keys) {
+                        val paint = paints[chartData.ys[yIndex].name]!!
+                        val value = mapYValue[yIndex]!!
+                        val x = (xDays - minX) * xScale
+            //                            val y =  ((baseHeight - value  * areaYScale[yIndex]!!) * prc[yIndex]!! / 100).toFloat()
+            //                            yVals += y
+                        //System.out.println("area ->" + chartData.ys[yIndex].name +" procent " + prc[yIndex] + " height "+ baseHeight + " - " + yVals)
 
+                        //val y = yVals
+
+                        val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
+                        val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
+
+                        result.add(
+                            ChartLineExt(
+                                xIndex,
+                                yIndex,
+                                xDate,
+                                xDays,
+                                chartData.yScaled,
+                                value,
+                                x - barSize / 2,
+                                y,
+                                paint,
+                                stackedChartType,
+                                chartData.ys,
+                                barSize = barSize
+                            )
+                        )
+                    }
+                    //System.out.println("area")
                 }
             }
         } else {
@@ -422,7 +428,8 @@ open class BaseChart @JvmOverloads constructor(
                                 y1,
                                 chartPaint,
                                 chartType,
-                                chartData.ys
+                                chartData.ys,
+                                barSize = barSize
                             )
                         )
                     } else if (yValue.type == ChartTypeEnum.BAR) {
@@ -437,13 +444,14 @@ open class BaseChart @JvmOverloads constructor(
                                 xDays,
                                 chartData.yScaled,
                                 yValue.yValues[xIndex],
-                                x1 - BAR_SIZE / 2,
+                                x1 - barSize / 2,
                                 y1,
                                 chartPaint,
                                 chartType,
                                 chartData.ys,
-                                x1 + BAR_SIZE / 2,
-                                baseHeight
+                                x1 + barSize / 2,
+                                baseHeight,
+                                barSize = barSize
                             )
                         )
 
@@ -486,7 +494,8 @@ open class BaseChart @JvmOverloads constructor(
         val type: ChartTypeEnum,
         val ys: List<YValue>,
         var x2: Float = 0f,
-        var y2: Float = 0f
+        var y2: Float = 0f,
+        val barSize: Float = 0f
     )
 
     data class MinMaxValues(
@@ -507,7 +516,6 @@ open class BaseChart @JvmOverloads constructor(
         const val ANIMATION_REPLACING_DURATION: Long = 1000
         const val ANIMATION_REPLACING_DURATION_FASTER: Long = 500
         const val MINIMAL_DISTANCE = 50
-        const val BAR_SIZE = 10
         const val MAGIC = 1.1f
 
         fun reduction(value: Long): String {
