@@ -39,4 +39,8 @@ class MainPresenter(private val sourceDataConverter: SourceDataConverter) {
         val chartData = sourceDataConverter.getChartData("", example)
         view?.updateChart(index, chartData)
     }
+
+    fun onAreaClicked() {
+
+    }
 }

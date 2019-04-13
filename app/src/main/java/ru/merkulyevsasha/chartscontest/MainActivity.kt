@@ -93,6 +93,10 @@ class MainActivity : AppCompatActivity(), IMainView {
             val oldChart = charts[index]
             oldChart.setData(chartData[index], object : OnLegendClicked {
                 override fun onLegendClicked(point: ChartLegend.Distance) {
+                    if (index == 4) {
+                        pres.onAreaClicked()
+                        return
+                    }
                     val calendar = Calendar.getInstance()
                     calendar.time = point.xDate
                     try {
