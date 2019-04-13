@@ -6,6 +6,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.ChartTypeEnum
 
 
 class ChartProgress @JvmOverloads constructor(
@@ -57,6 +58,8 @@ class ChartProgress @JvmOverloads constructor(
     }
 
     fun updateData(chartData: ChartData) {
+        val oldChartType = this.chartData.ys.first().type
+        val oldChartDataStacked = this.chartData.stacked
         super.setData(chartData)
 
         minX = chartData.getMinX()
@@ -70,7 +73,8 @@ class ChartProgress @JvmOverloads constructor(
             animatorSet = null
         }
 
-        if (newChartLines.first().type == "line") {
+        val newChartType = chartData.ys.first().type
+        if (oldChartType == ChartTypeEnum.LINE && newChartType == ChartTypeEnum.LINE) {
             if (animationInProgress.compareAndSet(false, true)) {
                 setNewChartLines(newChartLines)
                 animatorSet = AnimatorSet()

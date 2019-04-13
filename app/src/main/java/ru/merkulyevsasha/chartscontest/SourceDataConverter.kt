@@ -2,6 +2,7 @@ package ru.merkulyevsasha.chartscontest
 
 import android.graphics.Color
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.ChartTypeEnum
 import ru.merkulyevsasha.chartscontest.models.YValue
 import ru.merkulyevsasha.chartscontest.sources.Colors
 import ru.merkulyevsasha.chartscontest.sources.Example
@@ -15,6 +16,7 @@ class SourceDataConverter {
         val xValues = mutableListOf<Date>()
         val xValuesInDays = mutableListOf<Long>()
         val xValuesInHours = mutableListOf<Long>()
+        val xValuesInMinutes = mutableListOf<Long>()
         val yValues = mutableListOf<YValue>()
         example.columns.forEachIndexed { index, element ->
             if (index == 0) {
@@ -24,6 +26,8 @@ class SourceDataConverter {
                 xValuesInDays.addAll(inDays)
                 val inHours = dates.map { getDateAsHours(it.time) }
                 xValuesInHours.addAll(inHours)
+                val inMinutes = dates.map { getDateAsMinutes(it.time) }
+                xValuesInMinutes.addAll(inMinutes)
             } else {
                 val type = getTypes(element[0], example.types)
                 val name = getNames(element[0], example.names)
@@ -47,6 +51,7 @@ class SourceDataConverter {
             xValues,
             xValuesInDays,
             xValuesInHours,
+            xValuesInMinutes,
             yValues
         )
     }
@@ -88,8 +93,8 @@ class SourceDataConverter {
         }
     }
 
-    private fun getTypes(name: String, types: Types): String {
-        return when (name) {
+    private fun getTypes(name: String, types: Types): ChartTypeEnum {
+        val chartTypeName = when (name) {
             "y0" -> types.y0
             "y1" -> types.y1
             "y2" -> types.y2
@@ -99,6 +104,7 @@ class SourceDataConverter {
             "y6" -> types.y6
             else -> ""
         }
+        return ChartTypeEnum.valueOf(chartTypeName.toUpperCase())
     }
 
     private fun getColor(name: String, colors: Colors): Int {
@@ -120,6 +126,10 @@ class SourceDataConverter {
 
     private fun getDateAsHours(date: Long): Long {
         return date / (1000 * 60 * 60)
+    }
+
+    private fun getDateAsMinutes(date: Long): Long {
+        return date / (1000 * 60)
     }
 
 }

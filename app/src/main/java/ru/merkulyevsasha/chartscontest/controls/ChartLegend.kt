@@ -14,6 +14,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.ChartTypeEnum
 import ru.merkulyevsasha.chartscontest.models.XValuesEnum
 import ru.merkulyevsasha.chartscontest.models.YValue
 import java.text.DecimalFormat
@@ -232,7 +233,7 @@ class ChartLegend @JvmOverloads constructor(
                 if (newLegendData == null) return@apply
 
                 // vertical line
-                if (point.type == "line") {
+                if (point.type == ChartTypeEnum.LINE) {
                     this.drawLine(point.x, 0f, point.x, baseHeight, paintTopBottomLine)
                     // draw circles
                     for (yIndex in 0 until point.ys.size) {
@@ -253,7 +254,7 @@ class ChartLegend @JvmOverloads constructor(
                         this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintFillCircle)
                         this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintCircle)
                     }
-                } else if (point.type == "bar") {
+                } else if (point.type == ChartTypeEnum.BAR) {
                     drawRect(0f, 0f, point.x, baseHeight, shadowRectPaint)
                     drawRect(point.x + BAR_SIZE, 0f, baseWidth, baseHeight, shadowRectPaint)
                 }
@@ -355,7 +356,7 @@ class ChartLegend @JvmOverloads constructor(
 
     private fun calculateLegendRectPosition(point: Distance, widthLegendBox: Float): LegendPosition {
         var leftX = 10f
-        if (point.type == "line") {
+        if (point.type == ChartTypeEnum.LINE) {
             leftX = point.x - widthLegendBox / 2
             if (leftX + widthLegendBox > baseWidth) {
                 leftX = baseWidth - widthLegendBox - 10f
@@ -363,7 +364,7 @@ class ChartLegend @JvmOverloads constructor(
             if (leftX <= 0) {
                 leftX = 10f
             }
-        } else if (point.type == "bar") {
+        } else if (point.type == ChartTypeEnum.BAR) {
             leftX = point.x - widthLegendBox - BAR_SIZE - BAR_SIZE / 2
             if (leftX <= 0) {
                 leftX = point.x + BAR_SIZE + BAR_SIZE / 2
@@ -475,7 +476,7 @@ class ChartLegend @JvmOverloads constructor(
         val distances = mutableListOf<Distance>()
         for (chartLine in chartLines.filter { yShouldVisible[it.yIndex]!! }) {
 
-            if (chartLine.type == "line") {
+            if (chartLine.type == ChartTypeEnum.LINE) {
                 distances.add(
                     Distance(
                         Math.abs(chartLine.x - x),
@@ -488,7 +489,7 @@ class ChartLegend @JvmOverloads constructor(
                         chartLine.type
                     )
                 )
-            } else if (chartLine.type == "bar") {
+            } else if (chartLine.type == ChartTypeEnum.BAR) {
                 distances.add(
                     Distance(
                         Math.abs(chartLine.x - x),
@@ -518,8 +519,8 @@ class ChartLegend @JvmOverloads constructor(
         val nearestX = distances.sortedBy { it.distanceX }.filter { it.distanceX < BaseChart.MINIMAL_DISTANCE }
         if (nearestX.isNotEmpty()) {
             val firstNearest = nearestX.first()
-            if (firstNearest.type == "bar") return firstNearest
-            if (firstNearest.type == "line") return nearestX.firstOrNull { it.distanceY < BaseChart.MINIMAL_DISTANCE }
+            if (firstNearest.type == ChartTypeEnum.BAR) return firstNearest
+            if (firstNearest.type == ChartTypeEnum.LINE) return nearestX.firstOrNull { it.distanceY < BaseChart.MINIMAL_DISTANCE }
         }
         return null
     }
@@ -541,7 +542,7 @@ class ChartLegend @JvmOverloads constructor(
         val xIndex: Int,
         val yScaled: Boolean,
         val ys: List<YValue>,
-        val type: String
+        val type: ChartTypeEnum
     )
 
     data class LegendSizes(

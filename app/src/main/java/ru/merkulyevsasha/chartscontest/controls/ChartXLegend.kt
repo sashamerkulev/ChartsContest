@@ -117,11 +117,16 @@ class ChartXLegend @JvmOverloads constructor(
         xScale = baseWidth / (maxX - minX).toFloat()
         calculateYScales()
 
-        val startDay = chartData.xValuesIn()[startIndex]
-        val stopDay = chartData.xValuesIn()[stopIndex - 1]
-        val parts = 5
-        var stepInDays = ((stopDay - startDay) / parts).toInt()
-        if (stepInDays < 1) stepInDays = 1
+        var stepInDays: Int = 5
+        if (chartData.xValuesIn == XValuesEnum.X_MINUTES) {
+            stepInDays = 45
+        } else {
+            val startDay = chartData.xValuesIn()[startIndex]
+            val stopDay = chartData.xValuesIn()[stopIndex - 1]
+            val parts = 5
+            stepInDays = ((stopDay - startDay) / parts).toInt()
+            if (stepInDays < 1) stepInDays = 1
+        }
         coordDates.clear()
         coordDates.addAll(getCoordDates(stepInDays))
 

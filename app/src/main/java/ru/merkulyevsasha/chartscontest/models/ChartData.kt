@@ -10,6 +10,7 @@ data class ChartData(
     val xValues: List<Date>,
     private val xValuesInDays: List<Long>,
     private val xValuesInHours: List<Long>,
+    private val xValuesInMinutes: List<Long>,
     val ys: List<YValue>,
     var xValuesIn: XValuesEnum = XValuesEnum.X_DAYS
 ) {
@@ -29,12 +30,22 @@ data class ChartData(
         return xValuesInHours.max()!!
     }
 
+    private fun getMinInMinutes(): Long {
+        return xValuesInMinutes.min()!!
+    }
+
+    private fun getMaxInMinutes(): Long {
+        return xValuesInMinutes.max()!!
+    }
+
     fun getMinX(): Long {
-        return if (xValuesIn == XValuesEnum.X_DAYS) getMinInDays() else getMinInHours()
+        return if (xValuesIn == XValuesEnum.X_DAYS) getMinInDays()
+        else if (xValuesIn == XValuesEnum.X_HOURS) getMinInHours() else getMinInMinutes()
     }
 
     fun getMaxX(): Long {
-        return if (xValuesIn == XValuesEnum.X_DAYS) getMaxInDays() else getMaxInHours()
+        return if (xValuesIn == XValuesEnum.X_DAYS) getMaxInDays()
+        else if (xValuesIn == XValuesEnum.X_HOURS) getMaxInHours() else getMaxInMinutes()
     }
 
     fun getMaxYs(): Long {
@@ -46,14 +57,18 @@ data class ChartData(
     }
 
     fun xValuesIn(): List<Long> {
-        return if (xValuesIn == XValuesEnum.X_DAYS) xValuesInDays else xValuesInHours
+        return if (xValuesIn == XValuesEnum.X_DAYS) xValuesInDays
+        else if (xValuesIn == XValuesEnum.X_HOURS) xValuesInHours else xValuesInMinutes
     }
 
+    fun xValuesInHours(): List<Long> {
+        return xValuesInHours
+    }
 }
 
 data class YValue(
     val yValues: List<Long>,
-    val type: String,
+    val type: ChartTypeEnum,
     val name: String,
     val color: Int,
     val avg: Double = 0.0
@@ -61,5 +76,12 @@ data class YValue(
 
 enum class XValuesEnum {
     X_DAYS,
-    X_HOURS
+    X_HOURS,
+    X_MINUTES
+}
+
+enum class ChartTypeEnum {
+    LINE,
+    BAR,
+    AREA
 }

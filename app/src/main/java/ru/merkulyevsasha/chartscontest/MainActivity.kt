@@ -10,10 +10,12 @@ import ru.merkulyevsasha.chartscontest.controls.ChartLayoutView
 import ru.merkulyevsasha.chartscontest.controls.ChartLegend
 import ru.merkulyevsasha.chartscontest.controls.OnLegendClicked
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.ChartTypeEnum
 import ru.merkulyevsasha.chartscontest.models.XValuesEnum
 import ru.merkulyevsasha.chartscontest.sources.Example
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.text.SimpleDateFormat
 import java.util.*
 
 
@@ -39,9 +41,7 @@ class MainActivity : AppCompatActivity(), IMainView {
         try {
             val examples = mutableListOf<Example>()
             for (index in 1..5) {
-                val source = readSource(getAssetPath(index) + "overview.json")
-                val root = convertToObject(source)
-                examples.add(root)
+                examples.add(getAssetObjectFor(getAssetPath(index) + "overview.json"))
             }
             pres.onBind(this)
             pres.dealWithIt(examples)
@@ -89,20 +89,44 @@ class MainActivity : AppCompatActivity(), IMainView {
 
     override fun showCharts(chartData: List<ChartData>) {
         for (index in 0 until charts.size) {
-            charts[index].setData(chartData[index], object : OnLegendClicked {
+            val chartDataIndex = index + 1
+            val oldChart = charts[index]
+            oldChart.setData(chartData[index], object : OnLegendClicked {
                 override fun onLegendClicked(point: ChartLegend.Distance) {
                     val calendar = Calendar.getInstance()
                     calendar.time = point.xDate
                     try {
-                        val year = calendar.get(Calendar.YEAR)
-                        var month = (calendar.get(Calendar.MONTH) + 1).toString()
-                        if (month.length < 2) month = "0$month"
-                        var day = calendar.get(Calendar.DAY_OF_MONTH).toString()
-                        if (day.length < 2) day = "0$day"
-                        val path = getAssetPath(index + 1) + "$year-$month/$day.json"
-                        val source = readSource(path)
-                        val root = convertToObject(source)
-                        pres.dealWithIt(index, root)
+                        val path = getAssetPathAccordingTo(chartDataIndex, calendar)
+                        val root = getAssetObjectFor(path)
+                        val oldChartData = oldChart.getChartData()
+                        if (!oldChartData.stacked && oldChartData.ys.first().type == ChartTypeEnum.BAR) {
+                            val dateFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
+                            root.names.y0 = dateFormat.format(calendar.time)
+
+                            calendar.add(Calendar.DAY_OF_MONTH, -1)
+                            val path1 = getAssetPathAccordingTo(chartDataIndex, calendar)
+                            val root1 = getAssetObjectFor(path1)
+                            val xxx = root1.columns.subList(1, root1.columns.size)
+                            xxx[0][0] = "y1"
+                            root.names.y1 = dateFormat.format(calendar.time)
+                            root.colors.y1 = "#558DED"
+                            root.types.y1 = "line"
+                            root.columns.addAll(xxx)
+
+                            calendar.add(Calendar.DAY_OF_MONTH, 1)
+                            calendar.add(Calendar.WEEK_OF_YEAR, -1)
+                            val path2 = getAssetPathAccordingTo(chartDataIndex, calendar)
+                            val root2 = getAssetObjectFor(path2)
+                            val yyy = root2.columns.subList(1, root2.columns.size)
+                            yyy[0][0] = "y2"
+                            root.colors.y2 = "#5CBCDF"
+                            root.names.y2 = dateFormat.format(calendar.time)
+                            root.types.y2 = "line"
+                            root.columns.addAll(yyy)
+                            pres.dealWithIt(index, root)
+                        } else {
+                            pres.dealWithIt(index, root)
+                        }
                     } catch (e: java.lang.Exception) {
                         e.printStackTrace()
                     }
@@ -112,7 +136,7 @@ class MainActivity : AppCompatActivity(), IMainView {
     }
 
     override fun updateChart(index: Int, chartData: ChartData) {
-        chartData.xValuesIn = XValuesEnum.X_HOURS
+        chartData.xValuesIn = if (index == 3) XValuesEnum.X_MINUTES else XValuesEnum.X_HOURS
         charts[index].show(chartData)
     }
 
@@ -135,6 +159,20 @@ class MainActivity : AppCompatActivity(), IMainView {
     private fun convertToObject(json: String): Example {
         val gson = Gson()
         return gson.fromJson(json, Example::class.java)
+    }
+
+    private fun getAssetObjectFor(path: String): Example {
+        return convertToObject(readSource(path))
+    }
+
+    private fun getAssetPathAccordingTo(index: Int, calendar: Calendar): String {
+        val year = calendar.get(Calendar.YEAR)
+        var month = (calendar.get(Calendar.MONTH) + 1).toString()
+        if (month.length < 2) month = "0$month"
+        var day = calendar.get(Calendar.DAY_OF_MONTH).toString()
+        if (day.length < 2) day = "0$day"
+        val path = getAssetPath(index) + "$year-$month/$day.json"
+        return path
     }
 
 //    private fun convertToObject(json: String): List<Example> {

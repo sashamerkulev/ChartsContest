@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import ru.merkulyevsasha.chartscontest.models.ChartData
+import ru.merkulyevsasha.chartscontest.models.ChartTypeEnum
 import ru.merkulyevsasha.chartscontest.models.YValue
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -130,7 +131,7 @@ open class BaseChart @JvmOverloads constructor(
 
                 if (chartData.stacked) {
                     when (chartData.ys.first().type) {
-                        "bar" -> {
+                        ChartTypeEnum.BAR -> {
                             for (stackedRect in chartLines) {
                                 drawRect(
                                     stackedRect.x,
@@ -142,7 +143,7 @@ open class BaseChart @JvmOverloads constructor(
                             }
                             return@apply
                         }
-                        "area" -> {
+                        ChartTypeEnum.AREA -> {
                             Log.d("area", "asa")
 
 //                        paths.keys.forEachIndexed { index, yIndex ->
@@ -170,7 +171,8 @@ open class BaseChart @JvmOverloads constructor(
                     val chartLine = chartLines[index]
                     if (yShouldVisible[chartLine.yIndex] == false) continue
                     when (chartLine.type) {
-                        "area", "line" -> {
+                        ChartTypeEnum.AREA,
+                        ChartTypeEnum.LINE -> {
                             if (chartLine.xIndex > 0) {
                                 val prev = chartLines.subList(0, index)
                                     .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
@@ -184,7 +186,7 @@ open class BaseChart @JvmOverloads constructor(
                                 }
                             }
                         }
-                        "bar" -> {
+                        ChartTypeEnum.BAR -> {
                             drawRect(
                                 chartLine.x,
                                 chartLine.y,
@@ -201,7 +203,7 @@ open class BaseChart @JvmOverloads constructor(
                 for (index in 0 until newChartLines!!.size) {
                     val chartLine = newChartLines!![index]
                     when (chartLine.type) {
-                        "line" -> {
+                        ChartTypeEnum.LINE -> {
                             if (chartLine.xIndex > 0) {
                                 val prev = newChartLines!!.subList(0, index)
                                     .filter { it.xIndex == chartLine.xIndex - 1 && it.yIndex == chartLine.yIndex }
@@ -211,6 +213,15 @@ open class BaseChart @JvmOverloads constructor(
                                     drawLine(x1, y1, chartLine.x, chartLine.y, chartLine.paint)
                                 }
                             }
+                        }
+                        ChartTypeEnum.BAR -> {
+                            drawRect(
+                                chartLine.x,
+                                chartLine.y,
+                                chartLine.x2,
+                                chartLine.y2,
+                                chartLine.paint
+                            )
                         }
                     }
                 }
@@ -253,7 +264,7 @@ open class BaseChart @JvmOverloads constructor(
             var prc: Map<Int, Double> = mutableMapOf()
             val areaYScale = mutableMapOf<Int, Float>()
             val mapYMin = mutableMapOf<Int, Long>()
-            if (stackedType == "area") {
+            if (stackedType == ChartTypeEnum.AREA) {
                 val avg = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).average() }
                 val max = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).max()!! }
                 val min = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).min()!! }
@@ -285,7 +296,7 @@ open class BaseChart @JvmOverloads constructor(
                     mapYValue.put(yIndex, yValues[yIndex])
                 }
                 when (stackedType) {
-                    "bar" -> {
+                    ChartTypeEnum.BAR -> {
                         val sortedBar = mapYValue.toList().sortedByDescending { it.second }.toMap()
                         val scale = baseHeight / (yMinMaxValues[0]!!.max).toFloat()
                         var maxValue = true
@@ -340,7 +351,7 @@ open class BaseChart @JvmOverloads constructor(
                             }
                         }
                     }
-                    "area" -> {
+                    ChartTypeEnum.AREA -> {
 //                        var yVals = 0f
                         //System.out.println("area")
                         for (yIndex in sortedArea.keys) {
@@ -388,7 +399,7 @@ open class BaseChart @JvmOverloads constructor(
                     val chartPaint = paints[chartData.ys[yIndex].name]!!
                     val chartType = yValue.type
 
-                    if (yValue.type == "line") {
+                    if (yValue.type == ChartTypeEnum.LINE) {
                         var y1: Float
                         if (chartData.yScaled) {
                             val scale =
@@ -414,7 +425,7 @@ open class BaseChart @JvmOverloads constructor(
                                 chartData.ys
                             )
                         )
-                    } else if (yValue.type == "bar") {
+                    } else if (yValue.type == ChartTypeEnum.BAR) {
                         val scale = baseHeight / (yMinMaxValues[0]!!.max).toFloat()
                         val y1 = baseHeight - (yValue.yValues[xIndex]) * scale
 
@@ -472,7 +483,7 @@ open class BaseChart @JvmOverloads constructor(
         var x: Float,
         var y: Float,
         var paint: Paint,
-        val type: String,
+        val type: ChartTypeEnum,
         val ys: List<YValue>,
         var x2: Float = 0f,
         var y2: Float = 0f
@@ -494,6 +505,7 @@ open class BaseChart @JvmOverloads constructor(
         const val TEXT_STROKE_WIDTH = 1f
         const val ANIMATION_DURATION: Long = 300
         const val ANIMATION_REPLACING_DURATION: Long = 1000
+        const val ANIMATION_REPLACING_DURATION_FASTER: Long = 500
         const val MINIMAL_DISTANCE = 50
         const val BAR_SIZE = 10
         const val MAGIC = 1.1f
