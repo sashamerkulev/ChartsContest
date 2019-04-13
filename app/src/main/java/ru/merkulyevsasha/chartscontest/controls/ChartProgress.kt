@@ -163,6 +163,7 @@ class ChartProgress @JvmOverloads constructor(
         animationInProgress.set(false)
         chartLines.clear()
         chartLines.addAll(newChartLines)
+        noChartLines = false
         setNewChartLines(null)
     }
 
