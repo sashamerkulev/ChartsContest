@@ -127,13 +127,39 @@ class ChartProgress @JvmOverloads constructor(
                     this.start()
                 }
             }
+        } else if (oldChartType == ChartTypeEnum.BAR && newChartType == ChartTypeEnum.BAR) {
+            if (animationInProgress.compareAndSet(false, true)) {
+                //setNewChartLines(newChartLines)
+                animatorSet = AnimatorSet()
+                val animators = getBarToBarAnimation(chartLines, newChartLines)
+                animatorSet?.apply {
+                    this.playTogether(animators)
+                    this.duration = ANIMATION_REPLACING_DURATION
+                    this.addListener(object : Animator.AnimatorListener {
+                        override fun onAnimationRepeat(animation: Animator?) {
+                        }
+
+                        override fun onAnimationEnd(animation: Animator?) {
+                            onAnimationEnd(newChartLines)
+                        }
+
+                        override fun onAnimationCancel(animation: Animator?) {
+                            onAnimationEnd(newChartLines)
+                        }
+
+                        override fun onAnimationStart(animation: Animator?) {
+                        }
+                    })
+                    this.start()
+                }
+            }
         } else {
             onAnimationEnd(newChartLines)
             invalidate()
         }
     }
 
-    private fun onAnimationEnd(newChartLines: List<ChartLineExt>) {
+    private fun onAnimationEnd(newChartLines: List<BaseChart.ChartLineExt>) {
         animationInProgress.set(false)
         chartLines.clear()
         chartLines.addAll(newChartLines)

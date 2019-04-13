@@ -361,7 +361,7 @@ open class Chart @JvmOverloads constructor(
 
                 if (newSize < oldSize) {
                     val startAnimIndex = oldSize / 2 - newSize / 2
-                    val stopAnimIndex = oldSize / 2 + newSize / 2
+                    val stopAnimIndex = startAnimIndex + newSize
 
                     for (indexLine in 0 until chartLines.size) {
                         val chartLine = chartLines[indexLine]
@@ -654,7 +654,7 @@ open class Chart @JvmOverloads constructor(
 
                     val x2Animator =
                         if (indexLine <= halfSize) ValueAnimator.ofFloat(chartLine.x2 - 1000, chartLine.x2)
-                        else ValueAnimator.ofFloat(chartLine.x2 + 1000, chartLine.x2 )
+                        else ValueAnimator.ofFloat(chartLine.x2 + 1000, chartLine.x2)
                     x2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x2 = this as Float
@@ -697,6 +697,31 @@ open class Chart @JvmOverloads constructor(
                 animatorSet?.apply {
                     this.playTogether(animators)
                     //this.duration = ANIMATION_REPLACING_DURATION
+                    this.addListener(object : Animator.AnimatorListener {
+                        override fun onAnimationRepeat(animation: Animator?) {
+                        }
+
+                        override fun onAnimationEnd(animation: Animator?) {
+                            onAnimationEnd(newChartLines)
+                        }
+
+                        override fun onAnimationCancel(animation: Animator?) {
+                            onAnimationEnd(newChartLines)
+                        }
+
+                        override fun onAnimationStart(animation: Animator?) {
+                        }
+                    })
+                    this.start()
+                }
+            }
+        } else if (oldChartType == ChartTypeEnum.BAR && newChartType == ChartTypeEnum.BAR) {
+            if (animationInProgress.compareAndSet(false, true)) {
+                animatorSet = AnimatorSet()
+                val animators = getBarToBarAnimation(chartLines, newChartLines)
+                animatorSet?.apply {
+                    this.playTogether(animators)
+                    this.duration = ANIMATION_REPLACING_DURATION
                     this.addListener(object : Animator.AnimatorListener {
                         override fun onAnimationRepeat(animation: Animator?) {
                         }

@@ -1,6 +1,8 @@
 package ru.merkulyevsasha.chartscontest.controls
 
+import android.animation.Animator
 import android.animation.AnimatorSet
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -480,6 +482,210 @@ open class BaseChart @JvmOverloads constructor(
         }
         return result
     }
+
+    internal fun getBarToBarAnimation(chartLines: List<ChartLineExt>, newChartLines: List<ChartLineExt>): List<Animator> {
+        val animators = mutableListOf<Animator>()
+
+        val chartLinesSize = chartLines.size
+        val newChartLinesSize = newChartLines.size
+
+        if (chartLinesSize > newChartLinesSize) {
+
+            val startAnimIndex = chartLinesSize / 2 - newChartLinesSize / 2
+            val stopAnimIndex = startAnimIndex + newChartLinesSize
+            for (xIndex in 0 until chartLines.size) {
+                val chartLine = chartLines[xIndex]
+                if (xIndex < startAnimIndex) {
+                    val x1Animator = ValueAnimator.ofFloat(chartLine.x, chartLine.x - 1000)
+                    x1Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x1Animator)
+
+                    val x2Animator = ValueAnimator.ofFloat(chartLine.x2, chartLine.x2 - 1000)
+                    x2Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x2 = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x2Animator)
+                } else if (xIndex >= stopAnimIndex) {
+                    val x1Animator = ValueAnimator.ofFloat(chartLine.x, chartLine.x + 1000)
+                    x1Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x1Animator)
+
+                    val x2Animator = ValueAnimator.ofFloat(chartLine.x2, chartLine.x2 + 1000)
+                    x2Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x2 = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x2Animator)
+                } else {
+                    val newxIndex = xIndex - startAnimIndex
+                    val newChartLine = newChartLines[newxIndex]
+
+                    val colorAnimator =
+                        ValueAnimator.ofArgb(newChartLine.paint.color, chartLine.paint.color)
+                    colorAnimator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.paint.color = this as Int
+                            invalidate()
+                        }
+                    }
+                    animators.add(colorAnimator)
+
+                    val x1Animator = ValueAnimator.ofFloat(chartLine.x, newChartLine.x)
+                    x1Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x1Animator)
+
+                    val x2Animator = ValueAnimator.ofFloat(chartLine.x2, newChartLine.x2)
+                    x2Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x2 = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x2Animator)
+
+                    val y1Animator = ValueAnimator.ofFloat(chartLine.y, newChartLine.y)
+                    y1Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.y = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(y1Animator)
+
+                    val y2Animator = ValueAnimator.ofFloat(chartLine.y2, newChartLine.y2)
+                    y2Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.y2 = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(y2Animator)
+
+                }
+
+            }
+        } else { // chartLinesSize <= newChartLinesSize
+
+            val startAnimIndex = if (chartLinesSize == newChartLinesSize) 0 else newChartLinesSize / 2 - chartLinesSize / 2
+            val stopAnimIndex = if (chartLinesSize == newChartLinesSize) chartLinesSize else chartLinesSize + startAnimIndex
+            setNewChartLines(newChartLines)
+            noChartLines = true
+
+            for (indexLine in 0 until newChartLines.size) {
+                val chartLine = newChartLines[indexLine]
+                if (indexLine < startAnimIndex) {
+                    val x1Animator = ValueAnimator.ofFloat(chartLine.x - 1000, chartLine.x)
+                    x1Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x1Animator)
+
+                    val x2Animator = ValueAnimator.ofFloat(chartLine.x2 - 1000, chartLine.x2)
+                    x2Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x2 = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x2Animator)
+
+                } else if (indexLine >= stopAnimIndex) {
+                    val x1Animator = ValueAnimator.ofFloat(chartLine.x + 1000, chartLine.x)
+                    x1Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x1Animator)
+
+                    val x2Animator = ValueAnimator.ofFloat(chartLine.x2 + 1000, chartLine.x2)
+                    x2Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x2 = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x2Animator)
+                } else {
+                    val newxIndex = indexLine - startAnimIndex
+                    val oldChartLine = chartLines[newxIndex]
+
+                    val colorAnimator =
+                        ValueAnimator.ofArgb(oldChartLine.paint.color, chartLine.paint.color)
+                    colorAnimator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.paint.color = this as Int
+                            invalidate()
+                        }
+                    }
+                    animators.add(colorAnimator)
+
+                    val x1Animator = ValueAnimator.ofFloat(oldChartLine.x, chartLine.x)
+                    x1Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x1Animator)
+
+                    val x2Animator = ValueAnimator.ofFloat(oldChartLine.x2, chartLine.x2)
+                    x2Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.x2 = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(x2Animator)
+
+                    val y1Animator = ValueAnimator.ofFloat(oldChartLine.y, chartLine.y)
+                    y1Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.y = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(y1Animator)
+
+                    val y2Animator = ValueAnimator.ofFloat(oldChartLine.y2, chartLine.y2)
+                    y2Animator.addUpdateListener { value ->
+                        value.animatedValue?.apply {
+                            chartLine.y2 = this as Float
+                            invalidate()
+                        }
+                    }
+                    animators.add(y2Animator)
+                }
+            }
+        }
+
+        return animators
+    }
+
 
     data class ChartLineExt(
         val xIndex: Int,
