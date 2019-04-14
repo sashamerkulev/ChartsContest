@@ -999,6 +999,7 @@ open class BaseChart @JvmOverloads constructor(
         const val ANIMATION_REPLACING_DURATION_FASTER: Long = 500
         const val ANIMATION_ORDER_ACCELERATION: Long = 100
         const val MINIMAL_DISTANCE = 50
+        const val MINIMAL_DISTANCE_AREA = 100
         const val MAGIC = 1.1f
         private val GRAD_TO_RAD = Math.PI / 180
 

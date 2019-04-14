@@ -243,8 +243,10 @@ class ChartLayoutView @JvmOverloads constructor(
             chartTitle.setTextColor(ContextCompat.getColor(context, R.color.colorAccent))
 
             chartLegend.showPie = false
-            chartLegend.invalidate()
+            chartLegend.updateData(oldChartData, oldStartIndex, oldStopIndex)
+
             chartXLegend.visibility = View.VISIBLE
+
             chart.showPie = false
             chart.updateData(oldChartData, oldStartIndex, oldStopIndex)
         }

@@ -533,7 +533,8 @@ class ChartLegend @JvmOverloads constructor(
                 )
             }
         }
-        val nearestX = distances.sortedBy { it.distanceX }.filter { it.distanceX < BaseChart.MINIMAL_DISTANCE }
+        val dist = if (chartData.firstChartDataType() == ChartTypeEnum.AREA) MINIMAL_DISTANCE_AREA else MINIMAL_DISTANCE
+        val nearestX = distances.sortedBy { it.distanceX }.filter { it.distanceX < dist }
         if (nearestX.isNotEmpty()) {
             val firstNearest = nearestX.first()
             if (chartData.firstChartDataType() == ChartTypeEnum.AREA) return firstNearest
