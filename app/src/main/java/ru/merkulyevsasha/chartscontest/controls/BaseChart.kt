@@ -60,6 +60,11 @@ open class BaseChart @JvmOverloads constructor(
     private var centerY: Float = 0f
     private var radius: Float = 0f
 
+    private var zeroWidth1 = 0f
+    private var zeroHeight1 = 0f
+    private var maxHeight1 = 0f
+    private var maxWidth1 = 0f
+
     init {
         val metrics = resources.displayMetrics
         legendPiePaint.strokeWidth = TEXT_STROKE_WIDTH
@@ -165,6 +170,8 @@ open class BaseChart @JvmOverloads constructor(
                 centerX = baseWidth / 2
                 centerY = baseHeight / 2
                 radius = baseWidth / 3
+                maxHeight1 = baseHeight
+                maxWidth1 = baseWidth
             }
 
             if (!noChartLines) {
@@ -204,24 +211,6 @@ open class BaseChart @JvmOverloads constructor(
                                     drawText(name, coords[yIndex]!!.x, coords[yIndex]!!.y, legendPiePaint)
                                 }
 
-//                                for (angle in 0..180 step 10){
-//                                    val androidAngle = angle
-//                                    val cos = radius/2  * Math.cos(androidAngle * GRAD_TO_RAD)
-//                                    val sin = radius /2 * Math.sin(androidAngle * GRAD_TO_RAD)
-//                                    val xtext = (centerX - cos).toFloat()
-//                                    val ytext = (centerY - sin).toFloat()
-//                                    drawText((androidAngle).toString(), xtext-5, ytext, legendPiePaint)
-//                                }
-//
-//                                for (angle in 180..360 step 10){
-//                                    val androidAngle = angle
-//                                    val cos = radius  * Math.cos(androidAngle * GRAD_TO_RAD)
-//                                    val sin = radius * Math.sin(androidAngle * GRAD_TO_RAD)
-//                                    val xtext = (centerX - cos).toFloat()
-//                                    val ytext = (centerY - sin).toFloat()
-//                                    drawText((androidAngle).toString(), xtext, ytext, legendPiePaint)
-//                                }
-
                                 if (animationInProgress.compareAndSet(false, false)) {
                                     return@apply
                                 }
@@ -230,8 +219,6 @@ open class BaseChart @JvmOverloads constructor(
                             for (pp in yPaths.values) {
                                 pp.path.reset()
                             }
-                            //val sortedChartLines = chartLines.sortedBy { it.yIndex }
-
                             for (chartLine in chartLines) {
                                 val pathPaint = yPaths[chartLine.yIndex]!!
                                 if (pathPaint.path.isEmpty) {
@@ -247,14 +234,14 @@ open class BaseChart @JvmOverloads constructor(
                                 val path = notEmptyValues[index].path
                                 val paint = notEmptyValues[index].paint
                                 if (index == 0) {
-                                    path.lineTo(baseWidth, baseHeight)
-                                    path.lineTo(0f, baseHeight)
+                                    path.lineTo(maxWidth1, maxHeight1)
+                                    path.lineTo(zeroWidth1, maxHeight1)
                                     path.close()
                                     drawPath(path, paint)
                                 } else if (index == notEmptyValues.size - 1) {
                                     tempPath.reset()
-                                    tempPath.moveTo(baseWidth, 0f)
-                                    tempPath.lineTo(0f, 0f)
+                                    tempPath.moveTo(maxWidth1, zeroHeight1)
+                                    tempPath.lineTo(zeroWidth1, zeroHeight1)
                                     val sorted =
                                         chartLines.filter { it.yIndex < yIndex }.sortedByDescending { it.yIndex }
                                     val first = sorted.firstOrNull()
@@ -851,6 +838,46 @@ open class BaseChart @JvmOverloads constructor(
             }
             animators.add(radiusAnimator)
 
+            val zeroWidth1Animator = ValueAnimator.ofFloat(0f, baseWidth / 2)
+            zeroWidth1Animator.duration = ANIMATION_REPLACING_DURATION_SLOWER
+            zeroWidth1Animator.addUpdateListener { value ->
+                value.animatedValue?.apply {
+                    zeroWidth1 = this as Float
+                    invalidate()
+                }
+            }
+            animators.add(zeroWidth1Animator)
+
+            val zeroHeight1Animator = ValueAnimator.ofFloat(0f, baseHeight / 2)
+            zeroHeight1Animator.duration = ANIMATION_REPLACING_DURATION_SLOWER
+            zeroHeight1Animator.addUpdateListener { value ->
+                value.animatedValue?.apply {
+                    zeroHeight1 = this as Float
+                    invalidate()
+                }
+            }
+            animators.add(zeroHeight1Animator)
+
+            val maxHeight1Animator = ValueAnimator.ofFloat(0f, baseHeight / 2)
+            maxHeight1Animator.duration = ANIMATION_REPLACING_DURATION_SLOWER
+            maxHeight1Animator.addUpdateListener { value ->
+                value.animatedValue?.apply {
+                    maxHeight1 = this as Float
+                    invalidate()
+                }
+            }
+            animators.add(maxHeight1Animator)
+
+            val maxWidth1Animator = ValueAnimator.ofFloat(0f, baseWidth / 2)
+            maxWidth1Animator.duration = ANIMATION_REPLACING_DURATION_SLOWER
+            maxWidth1Animator.addUpdateListener { value ->
+                value.animatedValue?.apply {
+                    maxWidth1 = this as Float
+                    invalidate()
+                }
+            }
+            animators.add(maxWidth1Animator)
+
             for (paint in piePaints.values) {
                 val paintAnimator = ValueAnimator.ofInt(0, 255)
                 paintAnimator.duration = ANIMATION_REPLACING_DURATION_SLOWER
@@ -876,7 +903,6 @@ open class BaseChart @JvmOverloads constructor(
             }
 
             val coords = getArcCoords()
-
             for (chartLine in chartLines) {
 
                 val y1Animator = ValueAnimator.ofFloat(chartLine.y, coords[chartLine.yIndex]!!.y)
@@ -907,13 +933,11 @@ open class BaseChart @JvmOverloads constructor(
                     }
 
                     override fun onAnimationEnd(animation: Animator?) {
-                        animationInProgress.set(false)
-                        invalidate()
+                        endAnim()
                     }
 
                     override fun onAnimationCancel(animation: Animator?) {
-                        animationInProgress.set(false)
-                        invalidate()
+                        endAnim()
                     }
 
                     override fun onAnimationStart(animation: Animator?) {
@@ -924,6 +948,15 @@ open class BaseChart @JvmOverloads constructor(
         }
 
         //invalidate()
+    }
+
+    private fun endAnim() {
+        zeroWidth1 = 0f
+        zeroHeight1 = 0f
+        maxHeight1 = baseHeight
+        maxWidth1 = baseWidth
+        animationInProgress.set(false)
+        invalidate()
     }
 
     private fun getArcCoords(): Map<Int, ArcCoord> {
