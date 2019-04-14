@@ -6,8 +6,8 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.models.ChartTypeEnum
@@ -48,6 +48,8 @@ open class BaseChart @JvmOverloads constructor(
 
     private var barSize = -1
 
+    private var yPaths = mutableMapOf<Int, PathPaint>()
+
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
 
@@ -79,6 +81,8 @@ open class BaseChart @JvmOverloads constructor(
             paint.strokeWidth = CHART_STOKE_WIDTH
             paints.put(ys.name, paint)
             yShouldVisible.put(index, true)
+
+            yPaths[index] = PathPaint(Path(), paint)
         }
     }
 
@@ -147,30 +151,42 @@ open class BaseChart @JvmOverloads constructor(
                                     stackedRect.paint
                                 )
                             }
-                            return@apply
                         }
                         ChartTypeEnum.AREA -> {
-                            Log.d("area", "asa")
+                            for (pp in yPaths.values) {
+                                pp.path.reset()
+                            }
 
-//                        paths.keys.forEachIndexed { index, yIndex ->
-//                            val path = paths[yIndex]!!
-//                            if (index == 0) {
-////                                path.lineTo(baseWidth, baseHeight)
-////                                path.lineTo(0f, baseHeight)
-////                                path.close()
-//                            } else if (index == paths.keys.size - 1) {
-////                                path.lineTo(baseWidth, 0f)
-////                                path.lineTo(0f, 0f)
-////                                path.close()
-//                            } else {
-//
-//                            }
-//                            val paint = paints[chartData.ys[index].name]!!
-//                            drawPath(path, paint)
-//                        }
+                            for (chartLine in chartLines) {
+                                val pathPaint = yPaths[chartLine.yIndex]!!
+                                if (pathPaint.path.isEmpty) {
+                                    pathPaint.path.moveTo(chartLine.x, chartLine.y)
+                                    continue
+                                }
+                                pathPaint.path.lineTo(chartLine.x, chartLine.y)
+                            }
 
+                            val notEmptyValues = yPaths.filter { !it.value.path.isEmpty }.map { it.value }
+                            for (index in 0 until notEmptyValues.size) {
+                                val path = notEmptyValues[index].path
+                                val paint = notEmptyValues[index].paint
+                                if (index == 0) {
+                                    path.lineTo(baseWidth, baseHeight)
+                                    path.lineTo(0f, baseHeight)
+                                    path.close()
+                                } else if (index == notEmptyValues.size - 1) {
+                                    path.lineTo(baseWidth, 0f)
+                                    path.lineTo(0f, 0f)
+                                    path.close()
+                                } else {
+//                                    path.addPath(yPaths[index - 1]!!.path)
+//                                    path.close()
+                                }
+                                drawPath(path, paint)
+                            }
                         }
                     }
+                    return@apply
                 }
 
                 for (index in 0 until chartLines.size) {
@@ -286,7 +302,9 @@ open class BaseChart @JvmOverloads constructor(
                     mapYAvg.put(yIndex, avg[yIndex])
                     mapYMax.put(yIndex, max[yIndex])
                     mapYMin.put(yIndex, min[yIndex])
-                    areaYScale.put(yIndex, baseHeight / (mapYAvg[yIndex]!!.toFloat()))
+                    //areaYScale.put(yIndex, baseHeight / (mapYAvg[yIndex]!!.toFloat()))
+                    //areaYScale.put(yIndex, baseHeight / (mapYMax[yIndex]!! - mapYMin[yIndex]!!))
+                    areaYScale.put(yIndex, baseHeight / (max[yIndex]))
                 }
                 val avgSumma = mapYAvg.map { it.value }.sum()
 //                val maxSumma = max.max()!!
@@ -365,17 +383,33 @@ open class BaseChart @JvmOverloads constructor(
                         }
                     }
                 } else if (stackedChartType == ChartTypeEnum.AREA) {
+
+                    var yvals = 0.0
                     for (yIndex in sortedArea.keys) {
+                        if (!yShouldVisible[yIndex]!!) continue
                         val paint = paints[chartData.ys[yIndex].name]!!
                         var value = mapYValue[yIndex]!!
                         val avg = mapYAvg[yIndex]!!
-                        val deviation = (avg * 15 / 100).toLong()
+                        val deviation = (avg * 10 / 100).toLong()
                         if (value + deviation < avg || value - deviation > avg) value = avg.toLong()
 
+//                        val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
+//                        val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
+                        //val y = y1 * 100 / baseHeight * prc[yIndex]!! / 100
 
-//                        val y = baseHeight - (value) * areaYScale[yIndex]!!
-                        val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
-                        val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
+
+//                        val y =
+//                            baseHeight - (baseHeight - (value - mapYMin[yIndex]!!) * areaYScale[yIndex]!!) * prc[yIndex]!! / 100
+//                        val y =  ((baseHeight - value  * areaYScale[yIndex]!!) * prc[yIndex]!! / 100).toFloat()
+
+//                        val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
+//                        val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
+                        yvals += (baseHeight - (baseHeight - (value) * areaYScale[yIndex]!!)) * prc[yIndex]!! / 100
+
+
+                        System.out.println("area ->" + chartData.ys[yIndex].name + " procent " + prc[yIndex] + " height " + baseHeight + " - " + y)
+
+
                         result.add(
                             ChartLineExt(
                                 xIndex,
@@ -385,7 +419,7 @@ open class BaseChart @JvmOverloads constructor(
                                 chartData.yScaled,
                                 value,
                                 x - barSize / 2,
-                                y.toFloat(),
+                                baseHeight - yvals.toFloat(),
                                 paint,
                                 stackedChartType,
                                 chartData.ys,
@@ -735,6 +769,8 @@ open class BaseChart @JvmOverloads constructor(
         var min: Long,
         var max: Long
     )
+
+    data class PathPaint(val path: Path, val paint: Paint)
 
     companion object {
         const val ROWS = 6

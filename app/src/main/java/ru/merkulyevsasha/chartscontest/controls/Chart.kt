@@ -282,49 +282,68 @@ open class Chart @JvmOverloads constructor(
     // TODO to separate controls
     private fun drawYWithLegend(canvas: Canvas) {
         val boundRect = Rect()
-        for (index in 0 until yMinMaxValues.size step 2) {
-            val minMax = yMinMaxValues[index]
-            val step = (minMax!!.max - minMax.min) / ROWS
+        if (chartData.ys.first().type == ChartTypeEnum.AREA) {
+            val rowHeight = (baseHeight / 4).toLong()
 
-            var minMax1: MinMaxValues? = null
-            var step1: Long? = null
-            if (chartData.yScaled && (index + 1) < yMinMaxValues.size) {
-                minMax1 = yMinMaxValues[index + 1]
-                step1 = (minMax1!!.max - minMax1.min) / ROWS
-            }
-
-            textPaint.color = if (chartData.yScaled) chartData.ys[index].color else ContextCompat.getColor(
-                getContext(),
-                R.color.legend_xy
-            )
             canvas.drawText("0", 0f, baseHeight, textPaint)
-
-            if (chartData.yScaled && (index + 1) < yMinMaxValues.size) {
-                textPaint.getTextBounds("0", 0, 1, boundRect)
-                textPaint.color = chartData.ys[index + 1].color
-                canvas.drawText("0", baseWidth - boundRect.width() - 5, baseHeight, textPaint)
-            }
-
-            for (row in 1 until ROWS) {
-                val yRow = baseHeight - heightRow * row
+            var prcText = 25
+            for (index in 1 until 4) {
                 canvas.drawLine(
                     0f,
-                    yRow,
-                    width.toFloat(),
-                    yRow,
+                    baseHeight - rowHeight * index,
+                    baseWidth,
+                    baseHeight - rowHeight * index,
                     paintVerticalChartLine
                 )
+                canvas.drawText(prcText.toString(), 0f, baseHeight - rowHeight * index - 5, textPaint)
+                prcText += 25
+            }
+
+        } else {
+            for (index in 0 until yMinMaxValues.size step 2) {
+                val minMax = yMinMaxValues[index]
+                val step = (minMax!!.max - minMax.min) / ROWS
+
+                var minMax1: MinMaxValues? = null
+                var step1: Long? = null
+                if (chartData.yScaled && (index + 1) < yMinMaxValues.size) {
+                    minMax1 = yMinMaxValues[index + 1]
+                    step1 = (minMax1!!.max - minMax1.min) / ROWS
+                }
+
                 textPaint.color = if (chartData.yScaled) chartData.ys[index].color else ContextCompat.getColor(
                     getContext(),
                     R.color.legend_xy
                 )
-                canvas.drawText(reduction(step * row + minMax.min), 0f, yRow - 10, textPaint)
+                canvas.drawText("0", 0f, baseHeight, textPaint)
 
                 if (chartData.yScaled && (index + 1) < yMinMaxValues.size) {
-                    val text = reduction(step1!! * row + minMax1!!.min)
-                    textPaint.getTextBounds(text, 0, text.length, boundRect)
+                    textPaint.getTextBounds("0", 0, 1, boundRect)
                     textPaint.color = chartData.ys[index + 1].color
-                    canvas.drawText(text, baseWidth - boundRect.width() - 5, yRow - 10, textPaint)
+                    canvas.drawText("0", baseWidth - boundRect.width() - 5, baseHeight, textPaint)
+                }
+
+                for (row in 1 until ROWS) {
+                    val yRow = baseHeight - heightRow * row
+                    canvas.drawLine(
+                        0f,
+                        yRow,
+                        baseWidth,
+                        yRow,
+                        paintVerticalChartLine
+                    )
+                    textPaint.color = if (chartData.yScaled) chartData.ys[index].color else ContextCompat.getColor(
+                        getContext(),
+                        R.color.legend_xy
+                    )
+                    canvas.drawText(reduction(step * row + minMax.min), 0f, yRow - 10, textPaint)
+
+                    if (chartData.yScaled && (index + 1) < yMinMaxValues.size) {
+                        val text = reduction(step1!! * row + minMax1!!.min)
+                        textPaint.getTextBounds(text, 0, text.length, boundRect)
+                        textPaint.color = chartData.ys[index + 1].color
+                        canvas.drawText(text, baseWidth - boundRect.width() - 5, yRow - 10, textPaint)
+                    }
                 }
             }
         }
@@ -356,7 +375,8 @@ open class Chart @JvmOverloads constructor(
         if (oldChartType == ChartTypeEnum.LINE && newChartType == ChartTypeEnum.LINE) {
             if (animationInProgress.compareAndSet(false, true)) {
                 animatorSet = AnimatorSet()
-                val animators = getBarToBarAnimation(chartLines, oldStartIndex, oldStopIndex, newChartLines, startIndex, stopIndex)
+                val animators =
+                    getBarToBarAnimation(chartLines, oldStartIndex, oldStopIndex, newChartLines, startIndex, stopIndex)
                 animatorSet?.apply {
                     this.playTogether(animators)
                     this.duration = ANIMATION_REPLACING_DURATION
@@ -616,7 +636,8 @@ open class Chart @JvmOverloads constructor(
         } else if (oldChartType == ChartTypeEnum.BAR && newChartType == ChartTypeEnum.BAR) {
             if (animationInProgress.compareAndSet(false, true)) {
                 animatorSet = AnimatorSet()
-                val animators = getBarToBarAnimation(chartLines, oldStartIndex, oldStopIndex, newChartLines, startIndex, stopIndex)
+                val animators =
+                    getBarToBarAnimation(chartLines, oldStartIndex, oldStopIndex, newChartLines, startIndex, stopIndex)
                 animatorSet?.apply {
                     this.playTogether(animators)
                     //this.duration = ANIMATION_REPLACING_DURATION
