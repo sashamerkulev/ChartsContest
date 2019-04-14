@@ -366,15 +366,14 @@ open class BaseChart @JvmOverloads constructor(
         val xScale = baseWidth / (maxX - minX).toFloat()
         val result = mutableListOf<ChartLineExt>()
 
-        val x1 = (chartData.xValuesIn()[0] - minX) * xScale
-        val x2 = (chartData.xValuesIn()[1] - minX) * xScale
-        val barSize = x2 - x1
+        val x1BarSize = (chartData.xValuesIn()[0] - minX) * xScale
+        val x2BarSize = (chartData.xValuesIn()[1] - minX) * xScale
+        val barSize = x2BarSize - x1BarSize
 
         if (chartData.stacked) {
             val stackedChartType = chartData.ys.first().type
             val yNumber = chartData.ys.size
 
-            var sortedArea: Map<Int, Double> = mutableMapOf()
             var prc: Map<Int, Double> = mutableMapOf()
             val areaYScale = mutableMapOf<Int, Float>()
             val mapYMin = mutableMapOf<Int, Long>()
@@ -389,18 +388,11 @@ open class BaseChart @JvmOverloads constructor(
                     mapYAvg.put(yIndex, avg[yIndex])
                     mapYMax.put(yIndex, max[yIndex])
                     mapYMin.put(yIndex, min[yIndex])
-                    //areaYScale.put(yIndex, baseHeight / (mapYAvg[yIndex]!!.toFloat()))
-                    //areaYScale.put(yIndex, baseHeight / (mapYMax[yIndex]!! - mapYMin[yIndex]!!))
+                    //areaYScale.put(yIndex, baseHeight / (max[yIndex] - min[yIndex]))
                     areaYScale.put(yIndex, baseHeight / (max[yIndex]))
                 }
                 val avgSumma = mapYAvg.map { it.value }.sum()
-//                val maxSumma = max.max()!!
-//                val minSumma = min.sum()
                 prc = mapYAvg.mapValues { it.value * 100 / avgSumma }
-//                for (yIndex in mapYAvg.keys) {
-//                    System.out.println("area -> ${chartData.ys[yIndex].name} - ${prc[yIndex]} - ${avg[yIndex]} - ${min[yIndex]} - ${max[yIndex]}")
-//                }
-                //sortedArea = mapYAvg.toList().sortedByDescending { it.second }.toMap()
             }
 
             for (xIndex in startIndex until stopIndex) {
@@ -480,26 +472,16 @@ open class BaseChart @JvmOverloads constructor(
                         val deviation = (avg * 10 / 100).toLong()
                         if (value + deviation < avg || value - deviation > avg) value = avg.toLong()
 
-//                        val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
-//                        val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
-                        //val y = y1 * 100 / baseHeight * prc[yIndex]!! / 100
-
-
-//                        val y =
-//                            baseHeight - (baseHeight - (value - mapYMin[yIndex]!!) * areaYScale[yIndex]!!) * prc[yIndex]!! / 100
-//                        val y =  ((baseHeight - value  * areaYScale[yIndex]!!) * prc[yIndex]!! / 100).toFloat()
-
-//                        val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
-//                        val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
+//                        yvals += baseHeight  * prc[yIndex]!! / 100
                         yvals += (baseHeight - (baseHeight - (value) * areaYScale[yIndex]!!)) * prc[yIndex]!! / 100
 
-                        if (baseHeight == 660f) {
-                            System.out.println(
-                                "area ->" + yIndex + " - " + chartData.ys[yIndex].name +
-                                        " procent= " + prc[yIndex] +
-                                        " height= " + baseHeight + " - yvals= " + yvals + " -  y= " + (baseHeight - yvals.toFloat())
-                            )
-                        }
+//                        if (baseHeight == 660f) {
+//                            System.out.println(
+//                                "area ->" + yIndex + " - " + chartData.ys[yIndex].name +
+//                                        " procent= " + prc[yIndex] +
+//                                        " height= " + baseHeight + " - yvals= " + yvals + " -  y= " + (baseHeight- yvals)
+//                            )
+//                        }
                         result.add(
                             ChartLineExt(
                                 xIndex,
@@ -518,7 +500,6 @@ open class BaseChart @JvmOverloads constructor(
                             )
                         )
                     }
-                    //System.out.println("area")
                 }
             }
         } else {
