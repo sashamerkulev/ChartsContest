@@ -276,11 +276,11 @@ open class BaseChart @JvmOverloads constructor(
             val areaYScale = mutableMapOf<Int, Float>()
             val mapYMin = mutableMapOf<Int, Long>()
             val mapYMax = mutableMapOf<Int, Long>()
+            val mapYAvg = mutableMapOf<Int, Double>()
             if (stackedChartType == ChartTypeEnum.AREA) {
                 val avg = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).average() }
                 val max = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).max()!! }
                 val min = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).min()!! }
-                val mapYAvg = mutableMapOf<Int, Double>()
                 for (yIndex in 0 until avg.size) {
                     if (!yShouldVisible[yIndex]!!) continue
                     mapYAvg.put(yIndex, avg[yIndex])
@@ -365,21 +365,17 @@ open class BaseChart @JvmOverloads constructor(
                         }
                     }
                 } else if (stackedChartType == ChartTypeEnum.AREA) {
-                    //                        var yVals = 0f
-                    //System.out.println("area")
                     for (yIndex in sortedArea.keys) {
                         val paint = paints[chartData.ys[yIndex].name]!!
-                        val value = mapYValue[yIndex]!!
-                        val x = (xDays - minX) * xScale
-                        //                            val y =  ((baseHeight - value  * areaYScale[yIndex]!!) * prc[yIndex]!! / 100).toFloat()
-                        //                            yVals += y
-                        //System.out.println("area ->" + chartData.ys[yIndex].name +" procent " + prc[yIndex] + " height "+ baseHeight + " - " + yVals)
+                        var value = mapYValue[yIndex]!!
+                        val avg = mapYAvg[yIndex]!!
+                        val deviation = (avg * 15 / 100).toLong()
+                        if (value + deviation < avg || value - deviation > avg) value = avg.toLong()
 
-                        //val y = yVals
 
+//                        val y = baseHeight - (value) * areaYScale[yIndex]!!
                         val scale = baseHeight / (yMinMaxValues[0]!!.max - yMinMaxValues[0]!!.min).toFloat()
                         val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
-
                         result.add(
                             ChartLineExt(
                                 xIndex,
@@ -389,7 +385,7 @@ open class BaseChart @JvmOverloads constructor(
                                 chartData.yScaled,
                                 value,
                                 x - barSize / 2,
-                                y,
+                                y.toFloat(),
                                 paint,
                                 stackedChartType,
                                 chartData.ys,
@@ -592,7 +588,7 @@ open class BaseChart @JvmOverloads constructor(
 
                     val y2Animator = ValueAnimator.ofFloat(chartLine.y2, newChartLine.y2)
                     y2Animator.duration =
-                        ANIMATION_REPLACING_DURATION -  newChartLine.order * ANIMATION_ORDER_ACCELERATION
+                        ANIMATION_REPLACING_DURATION - newChartLine.order * ANIMATION_ORDER_ACCELERATION
                     y2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.y2 = this as Float
