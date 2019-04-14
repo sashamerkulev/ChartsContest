@@ -191,7 +191,7 @@ open class BaseChart @JvmOverloads constructor(
                                 for (yIndex in percents.keys) {
                                     if (!yShouldVisible[yIndex]!!) continue
 
-                                    val paint = piePaints[yIndex]
+                                    val paint = piePaints[yIndex]!!
                                     val rect = RectF()
                                     rect.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius)
 
@@ -203,6 +203,24 @@ open class BaseChart @JvmOverloads constructor(
                                     val name = percents[yIndex]!!.toInt().toString() + "%"
                                     drawText(name, coords[yIndex]!!.x, coords[yIndex]!!.y, legendPiePaint)
                                 }
+
+//                                for (angle in 0..180 step 10){
+//                                    val androidAngle = angle
+//                                    val cos = radius/2  * Math.cos(androidAngle * GRAD_TO_RAD)
+//                                    val sin = radius /2 * Math.sin(androidAngle * GRAD_TO_RAD)
+//                                    val xtext = (centerX - cos).toFloat()
+//                                    val ytext = (centerY - sin).toFloat()
+//                                    drawText((androidAngle).toString(), xtext-5, ytext, legendPiePaint)
+//                                }
+//
+//                                for (angle in 180..360 step 10){
+//                                    val androidAngle = angle
+//                                    val cos = radius  * Math.cos(androidAngle * GRAD_TO_RAD)
+//                                    val sin = radius * Math.sin(androidAngle * GRAD_TO_RAD)
+//                                    val xtext = (centerX - cos).toFloat()
+//                                    val ytext = (centerY - sin).toFloat()
+//                                    drawText((androidAngle).toString(), xtext, ytext, legendPiePaint)
+//                                }
 
                                 if (animationInProgress.compareAndSet(false, false)) {
                                     return@apply
@@ -234,8 +252,6 @@ open class BaseChart @JvmOverloads constructor(
                                     path.close()
                                     drawPath(path, paint)
                                 } else if (index == notEmptyValues.size - 1) {
-//                                    path.lineTo(baseWidth, 0f)
-//                                    path.lineTo(0f, 0f)
                                     tempPath.reset()
                                     tempPath.moveTo(baseWidth, 0f)
                                     tempPath.lineTo(0f, 0f)
@@ -251,11 +267,6 @@ open class BaseChart @JvmOverloads constructor(
                                     tempPath.close()
                                     drawPath(tempPath, paint)
                                 } else {
-//                                    tempPath.reset()
-//                                    tempPath.addPath(yPaths[index - 1]!!.path)
-//                                    tempPath.addPath(path)
-//                                    tempPath.close()
-//                                    if (index == 2) {
                                     val sorted =
                                         chartLines.filter { it.yIndex < yIndex }.sortedByDescending { it.yIndex }
                                     val first = sorted.firstOrNull()
@@ -266,7 +277,6 @@ open class BaseChart @JvmOverloads constructor(
                                             path.lineTo(chartLine.x, chartLine.y)
                                         }
                                     }
-//                                    }
                                     path.close()
                                     drawPath(path, paint)
                                 }
@@ -472,7 +482,7 @@ open class BaseChart @JvmOverloads constructor(
                         val deviation = (avg * 10 / 100).toLong()
                         if (value + deviation < avg || value - deviation > avg) value = avg.toLong()
 
-                        value = (((value - avg.toLong()) * areaYScale[yIndex]!!)* prc[yIndex]!! / 100).toLong()
+                        value = (((value - avg.toLong()) * areaYScale[yIndex]!!) * prc[yIndex]!! / 100).toLong()
 
                         yvals += baseHeight * prc[yIndex]!! / 100
 //                        yvals += (baseHeight - (baseHeight - (value) * areaYScale[yIndex]!!)) * prc[yIndex]!! / 100
@@ -493,7 +503,7 @@ open class BaseChart @JvmOverloads constructor(
                                 chartData.yScaled,
                                 value,
                                 x - barSize / 2,
-                                baseHeight - yvals.toFloat()+value,
+                                baseHeight - yvals.toFloat() + value,
                                 paint,
                                 stackedChartType,
                                 chartData.ys,
@@ -923,10 +933,11 @@ open class BaseChart @JvmOverloads constructor(
         for (yIndex in percents.keys) {
             if (!yShouldVisible[yIndex]!!) continue
             val angle = (360 * percents[yIndex]!! / 100).toFloat()
-            val angl = startAngle + angle + 90
+            System.out.println("area -> ${yIndex} - ${angle}")
+            val androidAngle = (startAngle + angle / 2) + 180
 
-            val cos = radius / 2 * Math.cos(angl * GRAD_TO_RAD)
-            val sin = radius / 2 * Math.sin(angl * GRAD_TO_RAD)
+            val cos = radius / 2 * Math.cos(androidAngle * GRAD_TO_RAD)
+            val sin = radius / 2 * Math.sin(androidAngle * GRAD_TO_RAD)
             val xtext = (centerX - cos).toFloat()
             val ytext = (centerY - sin).toFloat()
 

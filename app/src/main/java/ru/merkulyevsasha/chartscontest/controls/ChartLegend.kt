@@ -383,6 +383,8 @@ class ChartLegend @JvmOverloads constructor(
 
     private fun showLegend(x: Float, y: Float) {
 
+        if (showPie) return
+
         if (isShow && newLegendData != null) {
             if (x in newLegendData!!.position.x..newLegendData!!.position.x + newLegendData!!.sizes.width
                 && y in newLegendData!!.position.y..newLegendData!!.position.y + newLegendData!!.sizes.height

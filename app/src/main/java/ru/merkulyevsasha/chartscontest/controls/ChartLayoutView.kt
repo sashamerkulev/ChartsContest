@@ -221,12 +221,33 @@ class ChartLayoutView @JvmOverloads constructor(
     }
 
     fun showPie() {
+        val oldStartIndex = chart.startIndex
+        val oldStopIndex = chart.stopIndex
+
+        zoomOut.visibility = View.VISIBLE
+        chartTitle.text = context.getString(R.string.zoom_out_title)
+        chartTitle.setTextColor(ContextCompat.getColor(context, R.color.zoom_out))
+
         if (oldChartData.firstChartDataType() != ChartTypeEnum.AREA) {
             return
         }
+        chartLegend.showPie = true
         chartXLegend.visibility = View.GONE
         chart.showPie()
+
+        zoomContainer.setOnClickListener {
+            zoomContainer.setOnClickListener { }
+
+            zoomOut.visibility = View.GONE
+            chartTitle.text = oldChartData.title
+            chartTitle.setTextColor(ContextCompat.getColor(context, R.color.colorAccent))
+
+            chartLegend.showPie = false
+            chartLegend.invalidate()
+            chartXLegend.visibility = View.VISIBLE
+            chart.showPie = false
+            chart.updateData(oldChartData, oldStartIndex, oldStopIndex)
+        }
+
     }
-
-
 }
