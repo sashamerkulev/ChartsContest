@@ -445,9 +445,9 @@ class ChartLegend @JvmOverloads constructor(
 
         topTextY += pxLegendTextLinePadding
         // draw legend text according to yvalue
-        for (index in 0 until point.ys.size) {
-            if (!yShouldVisible[index]!!) continue
-            val yValue = point.ys[index]
+        for (yIndex in 0 until point.ys.size) {
+            if (!yShouldVisible[yIndex]!!) continue
+            val yValue = point.ys[yIndex]
             textLegendNumberPaint.color = yValue.color
             topTextY += heightText //+ pxLegendTextLinePadding
             val numberText = formatNumber(yValue.yValues[point.xIndex])
@@ -460,7 +460,13 @@ class ChartLegend @JvmOverloads constructor(
                     yValue.color
                 )
             )
-            names.add(LegendText(yValue.name, position.x + pxLegendTextPadding, topTextY))
+            if (chartData.firstChartDataType() == ChartTypeEnum.AREA) {
+                val prc = point.percents[yIndex]!!.toInt()
+
+                names.add(LegendText("${prc}% ${yValue.name}", position.x + pxLegendTextPadding, topTextY))
+            } else {
+                names.add(LegendText(yValue.name, position.x + pxLegendTextPadding, topTextY))
+            }
             topTextY += pxLegendTextLinePadding
         }
 
@@ -476,6 +482,23 @@ class ChartLegend @JvmOverloads constructor(
     }
 
     private fun findMinimalDistancePoint(x: Float, y: Float): Distance? {
+
+        if (chartData.firstChartDataType() == ChartTypeEnum.AREA) {
+            val point = chartLines.firstOrNull() { yShouldVisible[it.yIndex]!! }
+            return if (point == null) null else Distance(
+                0f,
+                0f,
+                point.xDate,
+                point.x,
+                point.xIndex,
+                point.yScaled,
+                point.ys,
+                point.type,
+                point.barSize,
+                point.percents
+            )
+        }
+
         val distances = mutableListOf<Distance>()
         for (chartLine in chartLines.filter { yShouldVisible[it.yIndex]!! }) {
 
@@ -520,6 +543,8 @@ class ChartLegend @JvmOverloads constructor(
                         chartLine.barSize
                     )
                 )
+            } else if (chartLine.type == ChartTypeEnum.AREA) {
+
             }
         }
         val nearestX = distances.sortedBy { it.distanceX }.filter { it.distanceX < BaseChart.MINIMAL_DISTANCE }
@@ -549,7 +574,8 @@ class ChartLegend @JvmOverloads constructor(
         val yScaled: Boolean,
         val ys: List<YValue>,
         val type: ChartTypeEnum,
-        val barSize: Float
+        val barSize: Float,
+        val percents: Map<Int, Double> = emptyMap()
     )
 
     data class LegendSizes(

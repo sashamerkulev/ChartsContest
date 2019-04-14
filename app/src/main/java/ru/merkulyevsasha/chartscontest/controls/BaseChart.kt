@@ -46,9 +46,8 @@ open class BaseChart @JvmOverloads constructor(
 
     private var onMeasureCalling = true
 
-    private var barSize = -1
-
     private var yPaths = mutableMapOf<Int, PathPaint>()
+    private var tempPath = Path()
 
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
@@ -82,7 +81,7 @@ open class BaseChart @JvmOverloads constructor(
             paints.put(ys.name, paint)
             yShouldVisible.put(index, true)
 
-            yPaths[index] = PathPaint(Path(), paint)
+            yPaths[index] = PathPaint(Path(), paint, index)
         }
     }
 
@@ -156,6 +155,7 @@ open class BaseChart @JvmOverloads constructor(
                             for (pp in yPaths.values) {
                                 pp.path.reset()
                             }
+                            //val sortedChartLines = chartLines.sortedBy { it.yIndex }
 
                             for (chartLine in chartLines) {
                                 val pathPaint = yPaths[chartLine.yIndex]!!
@@ -168,21 +168,48 @@ open class BaseChart @JvmOverloads constructor(
 
                             val notEmptyValues = yPaths.filter { !it.value.path.isEmpty }.map { it.value }
                             for (index in 0 until notEmptyValues.size) {
+                                val yIndex = notEmptyValues[index].yIndex
                                 val path = notEmptyValues[index].path
                                 val paint = notEmptyValues[index].paint
                                 if (index == 0) {
                                     path.lineTo(baseWidth, baseHeight)
                                     path.lineTo(0f, baseHeight)
                                     path.close()
+                                    drawPath(path, paint)
                                 } else if (index == notEmptyValues.size - 1) {
-                                    path.lineTo(baseWidth, 0f)
-                                    path.lineTo(0f, 0f)
-                                    path.close()
+//                                    path.lineTo(baseWidth, 0f)
+//                                    path.lineTo(0f, 0f)
+                                    tempPath.reset()
+                                    tempPath.moveTo(baseWidth, 0f)
+                                    tempPath.lineTo(0f, 0f)
+                                    val sorted = chartLines.filter { it.yIndex < yIndex }.sortedByDescending { it.yIndex }
+                                    val first = sorted.firstOrNull()
+                                    if (first != null) {
+                                        val mmm = sorted.filter { it.yIndex == first.yIndex }
+                                        for (chartLine in mmm) {
+                                            tempPath.lineTo(chartLine.x, chartLine.y)
+                                        }
+                                    }
+                                    tempPath.close()
+                                    drawPath(tempPath, paint)
                                 } else {
-//                                    path.addPath(yPaths[index - 1]!!.path)
-//                                    path.close()
+//                                    tempPath.reset()
+//                                    tempPath.addPath(yPaths[index - 1]!!.path)
+//                                    tempPath.addPath(path)
+//                                    tempPath.close()
+//                                    if (index == 2) {
+                                        val sorted = chartLines.filter { it.yIndex < yIndex }.sortedByDescending { it.yIndex }
+                                        val first = sorted.firstOrNull()
+                                        if (first != null) {
+                                            val mmm = sorted.filter { it.yIndex == first.yIndex }.sortedByDescending { it.xIndex }
+                                            for (chartLine in mmm) {
+                                                path.lineTo(chartLine.x, chartLine.y)
+                                            }
+                                        }
+//                                    }
+                                    path.close()
+                                    drawPath(path, paint)
                                 }
-                                drawPath(path, paint)
                             }
                         }
                     }
@@ -770,7 +797,11 @@ open class BaseChart @JvmOverloads constructor(
         var max: Long
     )
 
-    data class PathPaint(val path: Path, val paint: Paint)
+    data class PathPaint(
+        val path: Path,
+        val paint: Paint,
+        val yIndex: Int
+    )
 
     companion object {
         const val ROWS = 6

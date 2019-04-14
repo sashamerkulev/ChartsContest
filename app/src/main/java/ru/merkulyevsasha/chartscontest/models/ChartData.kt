@@ -61,8 +61,8 @@ data class ChartData(
         else if (xValuesIn == XValuesEnum.X_HOURS) xValuesInHours else xValuesInMinutes
     }
 
-    fun xValuesInHours(): List<Long> {
-        return xValuesInHours
+    fun firstChartDataType(): ChartTypeEnum {
+        return ys.first().type
     }
 }
 
