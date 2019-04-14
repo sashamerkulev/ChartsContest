@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.app.AppCompatDelegate
 import android.view.Menu
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_main.*
 import ru.merkulyevsasha.chartscontest.controls.ChartLayoutView
 import ru.merkulyevsasha.chartscontest.controls.ChartLegend
@@ -43,6 +44,8 @@ class MainActivity : AppCompatActivity(), IMainView {
             for (index in 1..5) {
                 examples.add(getAssetObjectFor(getAssetPath(index) + "overview.json"))
             }
+//            val source = readSource("chart_data.json")
+//            val examples = convertToObjects(source)
             pres.onBind(this)
             pres.dealWithIt(examples)
         } catch (e: Exception) {
@@ -179,11 +182,11 @@ class MainActivity : AppCompatActivity(), IMainView {
         return path
     }
 
-//    private fun convertToObject(json: String): List<Example> {
-//        val gson = Gson()
-//        val listType = object : TypeToken<List<Example>>() {}.type
-//        val data: List<Example> = gson.fromJson(json, listType)
-//        return data
-//    }
+    private fun convertToObjects(json: String): List<Example> {
+        val gson = Gson()
+        val listType = object : TypeToken<List<Example>>() {}.type
+        val data: List<Example> = gson.fromJson(json, listType)
+        return data
+    }
 
 }
