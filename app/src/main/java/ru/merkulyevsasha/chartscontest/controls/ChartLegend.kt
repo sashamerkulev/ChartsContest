@@ -17,8 +17,6 @@ import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.models.ChartTypeEnum
 import ru.merkulyevsasha.chartscontest.models.XValuesEnum
 import ru.merkulyevsasha.chartscontest.models.YValue
-import java.text.DecimalFormat
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -346,14 +344,6 @@ class ChartLegend @JvmOverloads constructor(
             yScales.clear()
             yScales.put(0, yScale)
         }
-    }
-
-    private fun formatNumber(number: Long): String {
-        val formatter = NumberFormat.getInstance(Locale.US) as DecimalFormat
-        val symbols = formatter.decimalFormatSymbols
-        symbols.groupingSeparator = ' '
-        formatter.decimalFormatSymbols = symbols
-        return formatter.format(number)
     }
 
     private fun calculateLegendRect(point: Distance, heightText: Int, bound: Rect): LegendSizes {

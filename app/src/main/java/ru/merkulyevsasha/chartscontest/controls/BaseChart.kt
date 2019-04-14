@@ -12,6 +12,8 @@ import android.view.View
 import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.models.ChartTypeEnum
 import ru.merkulyevsasha.chartscontest.models.YValue
+import java.text.DecimalFormat
+import java.text.NumberFormat
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -273,22 +275,22 @@ open class BaseChart @JvmOverloads constructor(
             var prc: Map<Int, Double> = mutableMapOf()
             val areaYScale = mutableMapOf<Int, Float>()
             val mapYMin = mutableMapOf<Int, Long>()
+            val mapYMax = mutableMapOf<Int, Long>()
             if (stackedChartType == ChartTypeEnum.AREA) {
                 val avg = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).average() }
                 val max = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).max()!! }
                 val min = chartData.ys.map { it.yValues.subList(startIndex, stopIndex).min()!! }
                 val mapYAvg = mutableMapOf<Int, Double>()
-                val mapYMax = mutableMapOf<Int, Long>()
                 for (yIndex in 0 until avg.size) {
                     if (!yShouldVisible[yIndex]!!) continue
                     mapYAvg.put(yIndex, avg[yIndex])
                     mapYMax.put(yIndex, max[yIndex])
                     mapYMin.put(yIndex, min[yIndex])
-                    areaYScale.put(yIndex, baseHeight / (max[yIndex]))
+                    areaYScale.put(yIndex, baseHeight / (mapYAvg[yIndex]!!.toFloat()))
                 }
                 val avgSumma = mapYAvg.map { it.value }.sum()
-                val maxSumma = max.max()!!
-                val minSumma = min.sum()
+//                val maxSumma = max.max()!!
+//                val minSumma = min.sum()
                 prc = mapYAvg.mapValues { it.value * 100 / avgSumma }
 //                for (yIndex in mapYAvg.keys) {
 //                    System.out.println("area -> ${chartData.ys[yIndex].name} - ${prc[yIndex]} - ${avg[yIndex]} - ${min[yIndex]} - ${max[yIndex]}")
@@ -391,7 +393,8 @@ open class BaseChart @JvmOverloads constructor(
                                 paint,
                                 stackedChartType,
                                 chartData.ys,
-                                barSize = barSize
+                                barSize = barSize,
+                                percents = prc
                             )
                         )
                     }
@@ -713,7 +716,6 @@ open class BaseChart @JvmOverloads constructor(
         return animators
     }
 
-
     data class ChartLineExt(
         val xIndex: Int,
         val yIndex: Int,
@@ -729,7 +731,8 @@ open class BaseChart @JvmOverloads constructor(
         var x2: Float = 0f,
         var y2: Float = 0f,
         val barSize: Float = 0f,
-        val order: Int = 0
+        val order: Int = 0,
+        val percents: Map<Int, Double> = emptyMap()
     )
 
     data class MinMaxValues(
@@ -760,21 +763,30 @@ open class BaseChart @JvmOverloads constructor(
             }
             if (value > 10000) {
                 reductionValue -= value % 1000
-                return (reductionValue + 1000).toString()
+                return formatNumber(reductionValue + 1000).toString()
             }
             if (value > 1000) {
                 reductionValue -= value % 100
-                return (reductionValue + 100).toString()
+                return formatNumber(reductionValue + 100).toString()
             }
             if (value > 100) {
                 reductionValue -= value % 10
-                return (reductionValue + 10).toString()
+                return formatNumber(reductionValue + 10).toString()
             }
             if (value > 10) {
                 reductionValue -= value % 10
-                return (reductionValue + 10).toString()
+                return formatNumber(reductionValue + 10).toString()
             }
             return reductionValue.toString()
         }
+
+        fun formatNumber(number: Long): String {
+            val formatter = NumberFormat.getInstance(Locale.US) as DecimalFormat
+            val symbols = formatter.decimalFormatSymbols
+            symbols.groupingSeparator = ' '
+            formatter.decimalFormatSymbols = symbols
+            return formatter.format(number)
+        }
+
     }
 }

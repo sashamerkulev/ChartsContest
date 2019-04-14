@@ -318,7 +318,7 @@ open class Chart @JvmOverloads constructor(
                     getContext(),
                     R.color.legend_xy
                 )
-                canvas.drawText(reduction(step * row + minMax!!.min), 0f, yRow - 10, textPaint)
+                canvas.drawText(reduction(step * row + minMax.min), 0f, yRow - 10, textPaint)
 
                 if (chartData.yScaled && (index + 1) < yMinMaxValues.size) {
                     val text = reduction(step1!! * row + minMax1!!.min)
