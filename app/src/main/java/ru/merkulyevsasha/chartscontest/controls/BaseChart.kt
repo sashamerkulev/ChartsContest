@@ -267,6 +267,7 @@ open class BaseChart @JvmOverloads constructor(
 
         if (chartData.stacked) {
             val stackedChartType = chartData.ys.first().type
+            val yNumber = chartData.ys.size
 
             var sortedArea: Map<Int, Double> = mutableMapOf()
             var prc: Map<Int, Double> = mutableMapOf()
@@ -309,7 +310,7 @@ open class BaseChart @JvmOverloads constructor(
                     val scale = baseHeight / (yMinMaxValues[0]!!.max).toFloat()
                     var maxValue = true
                     var maxY = 0f
-                    for (yIndex in sortedBar.keys) {
+                    for ((index, yIndex) in sortedBar.keys.withIndex()) {
                         if (!yShouldVisible[yIndex]!!) continue
 
                         val value = sortedBar[yIndex]!!
@@ -334,7 +335,8 @@ open class BaseChart @JvmOverloads constructor(
                                     chartData.ys,
                                     x + barSize / 2,
                                     baseHeight,
-                                    barSize = barSize
+                                    barSize = barSize,
+                                    order = yNumber - index
                                 )
                             )
                         } else {
@@ -354,21 +356,21 @@ open class BaseChart @JvmOverloads constructor(
                                     chartData.ys,
                                     x + barSize / 2,
                                     maxY + diff,
-                                    barSize = barSize
+                                    barSize = barSize,
+                                    order = yNumber - index
                                 )
                             )
                         }
                     }
-                }
-                else if (stackedChartType == ChartTypeEnum.AREA) {
-            //                        var yVals = 0f
+                } else if (stackedChartType == ChartTypeEnum.AREA) {
+                    //                        var yVals = 0f
                     //System.out.println("area")
                     for (yIndex in sortedArea.keys) {
                         val paint = paints[chartData.ys[yIndex].name]!!
                         val value = mapYValue[yIndex]!!
                         val x = (xDays - minX) * xScale
-            //                            val y =  ((baseHeight - value  * areaYScale[yIndex]!!) * prc[yIndex]!! / 100).toFloat()
-            //                            yVals += y
+                        //                            val y =  ((baseHeight - value  * areaYScale[yIndex]!!) * prc[yIndex]!! / 100).toFloat()
+                        //                            yVals += y
                         //System.out.println("area ->" + chartData.ys[yIndex].name +" procent " + prc[yIndex] + " height "+ baseHeight + " - " + yVals)
 
                         //val y = yVals
@@ -483,7 +485,10 @@ open class BaseChart @JvmOverloads constructor(
         return result
     }
 
-    internal fun getBarToBarAnimation(chartLines: List<ChartLineExt>, newChartLines: List<ChartLineExt>): List<Animator> {
+    internal fun getBarToBarAnimation(
+        chartLines: List<ChartLineExt>, oldStartIndex: Int, oldStopIndex: Int,
+        newChartLines: List<ChartLineExt>, newStartIndex: Int, newStopIndex: Int
+    ): List<Animator> {
         val animators = mutableListOf<Animator>()
 
         val chartLinesSize = chartLines.size
@@ -497,6 +502,7 @@ open class BaseChart @JvmOverloads constructor(
                 val chartLine = chartLines[xIndex]
                 if (xIndex < startAnimIndex) {
                     val x1Animator = ValueAnimator.ofFloat(chartLine.x, chartLine.x - 1000)
+                    x1Animator.duration = ANIMATION_REPLACING_DURATION
                     x1Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x = this as Float
@@ -506,6 +512,7 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(x1Animator)
 
                     val x2Animator = ValueAnimator.ofFloat(chartLine.x2, chartLine.x2 - 1000)
+                    x2Animator.duration = ANIMATION_REPLACING_DURATION
                     x2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x2 = this as Float
@@ -515,6 +522,7 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(x2Animator)
                 } else if (xIndex >= stopAnimIndex) {
                     val x1Animator = ValueAnimator.ofFloat(chartLine.x, chartLine.x + 1000)
+                    x1Animator.duration = ANIMATION_REPLACING_DURATION
                     x1Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x = this as Float
@@ -524,6 +532,7 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(x1Animator)
 
                     val x2Animator = ValueAnimator.ofFloat(chartLine.x2, chartLine.x2 + 1000)
+                    x2Animator.duration = ANIMATION_REPLACING_DURATION
                     x2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x2 = this as Float
@@ -536,7 +545,7 @@ open class BaseChart @JvmOverloads constructor(
                     val newChartLine = newChartLines[newxIndex]
 
                     val colorAnimator =
-                        ValueAnimator.ofArgb(newChartLine.paint.color, chartLine.paint.color)
+                        ValueAnimator.ofArgb(chartLine.paint.color, newChartLine.paint.color)
                     colorAnimator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.paint.color = this as Int
@@ -546,6 +555,8 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(colorAnimator)
 
                     val x1Animator = ValueAnimator.ofFloat(chartLine.x, newChartLine.x)
+                    x1Animator.duration =
+                        ANIMATION_REPLACING_DURATION - newChartLine.order * ANIMATION_ORDER_ACCELERATION
                     x1Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x = this as Float
@@ -555,6 +566,8 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(x1Animator)
 
                     val x2Animator = ValueAnimator.ofFloat(chartLine.x2, newChartLine.x2)
+                    x2Animator.duration =
+                        ANIMATION_REPLACING_DURATION - newChartLine.order * ANIMATION_ORDER_ACCELERATION
                     x2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x2 = this as Float
@@ -564,6 +577,8 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(x2Animator)
 
                     val y1Animator = ValueAnimator.ofFloat(chartLine.y, newChartLine.y)
+                    y1Animator.duration =
+                        ANIMATION_REPLACING_DURATION - newChartLine.order * ANIMATION_ORDER_ACCELERATION
                     y1Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.y = this as Float
@@ -573,6 +588,8 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(y1Animator)
 
                     val y2Animator = ValueAnimator.ofFloat(chartLine.y2, newChartLine.y2)
+                    y2Animator.duration =
+                        ANIMATION_REPLACING_DURATION -  newChartLine.order * ANIMATION_ORDER_ACCELERATION
                     y2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.y2 = this as Float
@@ -586,8 +603,10 @@ open class BaseChart @JvmOverloads constructor(
             }
         } else { // chartLinesSize <= newChartLinesSize
 
-            val startAnimIndex = if (chartLinesSize == newChartLinesSize) 0 else newChartLinesSize / 2 - chartLinesSize / 2
-            val stopAnimIndex = if (chartLinesSize == newChartLinesSize) chartLinesSize else chartLinesSize + startAnimIndex
+            val startAnimIndex =
+                if (chartLinesSize == newChartLinesSize) 0 else newChartLinesSize / 2 - chartLinesSize / 2
+            val stopAnimIndex =
+                if (chartLinesSize == newChartLinesSize) chartLinesSize else chartLinesSize + startAnimIndex
             setNewChartLines(newChartLines)
             noChartLines = true
 
@@ -595,6 +614,7 @@ open class BaseChart @JvmOverloads constructor(
                 val chartLine = newChartLines[indexLine]
                 if (indexLine < startAnimIndex) {
                     val x1Animator = ValueAnimator.ofFloat(chartLine.x - 1000, chartLine.x)
+                    x1Animator.duration = ANIMATION_REPLACING_DURATION
                     x1Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x = this as Float
@@ -604,6 +624,7 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(x1Animator)
 
                     val x2Animator = ValueAnimator.ofFloat(chartLine.x2 - 1000, chartLine.x2)
+                    x2Animator.duration = ANIMATION_REPLACING_DURATION
                     x2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x2 = this as Float
@@ -614,6 +635,7 @@ open class BaseChart @JvmOverloads constructor(
 
                 } else if (indexLine >= stopAnimIndex) {
                     val x1Animator = ValueAnimator.ofFloat(chartLine.x + 1000, chartLine.x)
+                    x1Animator.duration = ANIMATION_REPLACING_DURATION
                     x1Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x = this as Float
@@ -623,6 +645,7 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(x1Animator)
 
                     val x2Animator = ValueAnimator.ofFloat(chartLine.x2 + 1000, chartLine.x2)
+                    x2Animator.duration = ANIMATION_REPLACING_DURATION
                     x2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x2 = this as Float
@@ -634,17 +657,18 @@ open class BaseChart @JvmOverloads constructor(
                     val newxIndex = indexLine - startAnimIndex
                     val oldChartLine = chartLines[newxIndex]
 
-                    val colorAnimator =
-                        ValueAnimator.ofArgb(oldChartLine.paint.color, chartLine.paint.color)
-                    colorAnimator.addUpdateListener { value ->
-                        value.animatedValue?.apply {
-                            chartLine.paint.color = this as Int
-                            invalidate()
-                        }
-                    }
-                    animators.add(colorAnimator)
+//                    val colorAnimator =
+//                        ValueAnimator.ofArgb(oldChartLine.paint.color, chartLine.paint.color)
+//                    colorAnimator.addUpdateListener { value ->
+//                        value.animatedValue?.apply {
+//                            chartLine.paint.color = this as Int
+//                            invalidate()
+//                        }
+//                    }
+//                    animators.add(colorAnimator)
 
                     val x1Animator = ValueAnimator.ofFloat(oldChartLine.x, chartLine.x)
+                    x1Animator.duration = ANIMATION_REPLACING_DURATION
                     x1Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x = this as Float
@@ -654,6 +678,7 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(x1Animator)
 
                     val x2Animator = ValueAnimator.ofFloat(oldChartLine.x2, chartLine.x2)
+                    x2Animator.duration = ANIMATION_REPLACING_DURATION
                     x2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.x2 = this as Float
@@ -663,6 +688,7 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(x2Animator)
 
                     val y1Animator = ValueAnimator.ofFloat(oldChartLine.y, chartLine.y)
+                    y1Animator.duration = ANIMATION_REPLACING_DURATION
                     y1Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.y = this as Float
@@ -672,6 +698,7 @@ open class BaseChart @JvmOverloads constructor(
                     animators.add(y1Animator)
 
                     val y2Animator = ValueAnimator.ofFloat(oldChartLine.y2, chartLine.y2)
+                    y2Animator.duration = ANIMATION_REPLACING_DURATION
                     y2Animator.addUpdateListener { value ->
                         value.animatedValue?.apply {
                             chartLine.y2 = this as Float
@@ -701,7 +728,8 @@ open class BaseChart @JvmOverloads constructor(
         val ys: List<YValue>,
         var x2: Float = 0f,
         var y2: Float = 0f,
-        val barSize: Float = 0f
+        val barSize: Float = 0f,
+        val order: Int = 0
     )
 
     data class MinMaxValues(
@@ -721,6 +749,7 @@ open class BaseChart @JvmOverloads constructor(
         const val ANIMATION_DURATION: Long = 300
         const val ANIMATION_REPLACING_DURATION: Long = 1000
         const val ANIMATION_REPLACING_DURATION_FASTER: Long = 500
+        const val ANIMATION_ORDER_ACCELERATION: Long = 100
         const val MINIMAL_DISTANCE = 50
         const val MAGIC = 1.1f
 

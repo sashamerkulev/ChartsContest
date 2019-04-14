@@ -333,6 +333,8 @@ open class Chart @JvmOverloads constructor(
     fun updateData(chartData: ChartData, startIndex: Int, stopIndex: Int) {
         val oldChartType = this.chartData.ys.first().type
         val oldChartDataStacked = this.chartData.stacked
+        val oldStartIndex = this.startIndex
+        val oldStopIndex = this.stopIndex
 
         super.setData(chartData)
         this.startIndex = startIndex
@@ -354,7 +356,7 @@ open class Chart @JvmOverloads constructor(
         if (oldChartType == ChartTypeEnum.LINE && newChartType == ChartTypeEnum.LINE) {
             if (animationInProgress.compareAndSet(false, true)) {
                 animatorSet = AnimatorSet()
-                val animators = getBarToBarAnimation(chartLines, newChartLines)
+                val animators = getBarToBarAnimation(chartLines, oldStartIndex, oldStopIndex, newChartLines, startIndex, stopIndex)
                 animatorSet?.apply {
                     this.playTogether(animators)
                     this.duration = ANIMATION_REPLACING_DURATION
@@ -614,10 +616,10 @@ open class Chart @JvmOverloads constructor(
         } else if (oldChartType == ChartTypeEnum.BAR && newChartType == ChartTypeEnum.BAR) {
             if (animationInProgress.compareAndSet(false, true)) {
                 animatorSet = AnimatorSet()
-                val animators = getBarToBarAnimation(chartLines, newChartLines)
+                val animators = getBarToBarAnimation(chartLines, oldStartIndex, oldStopIndex, newChartLines, startIndex, stopIndex)
                 animatorSet?.apply {
                     this.playTogether(animators)
-                    this.duration = ANIMATION_REPLACING_DURATION
+                    //this.duration = ANIMATION_REPLACING_DURATION
                     this.addListener(object : Animator.AnimatorListener {
                         override fun onAnimationRepeat(animation: Animator?) {
                         }

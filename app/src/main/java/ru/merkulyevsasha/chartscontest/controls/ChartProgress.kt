@@ -131,7 +131,7 @@ class ChartProgress @JvmOverloads constructor(
             if (animationInProgress.compareAndSet(false, true)) {
                 //setNewChartLines(newChartLines)
                 animatorSet = AnimatorSet()
-                val animators = getBarToBarAnimation(chartLines, newChartLines)
+                val animators = getBarToBarAnimation(chartLines, 0, chartLines.size, newChartLines, 0, newChartLines.size)
                 animatorSet?.apply {
                     this.playTogether(animators)
                     this.duration = ANIMATION_REPLACING_DURATION
