@@ -7,8 +7,11 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.RectF
+import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.view.View
+import ru.merkulyevsasha.chartscontest.R
 import ru.merkulyevsasha.chartscontest.models.ChartData
 import ru.merkulyevsasha.chartscontest.models.ChartTypeEnum
 import ru.merkulyevsasha.chartscontest.models.YValue
@@ -32,7 +35,8 @@ open class BaseChart @JvmOverloads constructor(
     internal var stopIndex: Int = 0
 
     internal lateinit var chartData: ChartData
-    internal val paints = mutableMapOf<String, Paint>()
+    internal val paints = mutableMapOf<Int, Paint>()
+    internal val piePaints = mutableMapOf<Int, Paint>()
     internal val yShouldVisible = mutableMapOf<Int, Boolean>()
     internal val chartLines = mutableListOf<ChartLineExt>()
 
@@ -48,6 +52,21 @@ open class BaseChart @JvmOverloads constructor(
 
     private var yPaths = mutableMapOf<Int, PathPaint>()
     private var tempPath = Path()
+
+    internal var showPie = false
+
+    private val legendPiePaint = Paint()
+    private var centerX: Float = 0f
+    private var centerY: Float = 0f
+    private var radius: Float = 0f
+
+    init {
+        val metrics = resources.displayMetrics
+        legendPiePaint.strokeWidth = TEXT_STROKE_WIDTH
+        legendPiePaint.style = Paint.Style.FILL_AND_STROKE
+        legendPiePaint.color = ContextCompat.getColor(getContext(), R.color.white)
+        legendPiePaint.textSize = TEXT_SIZE_DP * metrics.density
+    }
 
     open fun setData(chartData: ChartData) {
         this.chartData = chartData
@@ -73,12 +92,20 @@ open class BaseChart @JvmOverloads constructor(
 
         yShouldVisible.clear()
         paints.clear()
+        piePaints.clear()
         chartData.ys.forEachIndexed { index, ys ->
             val paint = Paint(Paint.ANTI_ALIAS_FLAG)
             paint.style = Paint.Style.FILL_AND_STROKE
             paint.color = ys.color
             paint.strokeWidth = CHART_STOKE_WIDTH
-            paints.put(ys.name, paint)
+            paints.put(index, paint)
+
+            val piePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+            piePaint.style = Paint.Style.FILL_AND_STROKE
+            piePaint.color = ys.color
+            piePaint.strokeWidth = CHART_STOKE_WIDTH
+            piePaints.put(index, piePaint)
+
             yShouldVisible.put(index, true)
 
             yPaths[index] = PathPaint(Path(), paint, index)
@@ -130,11 +157,15 @@ open class BaseChart @JvmOverloads constructor(
     }
 
     open fun onMeasureEnd() {
-
     }
 
     override fun onDraw(canvas: Canvas?) {
         canvas?.apply {
+            if (radius <= 0) {
+                centerX = baseWidth / 2
+                centerY = baseHeight / 2
+                radius = baseWidth / 3
+            }
 
             if (!noChartLines) {
 
@@ -152,6 +183,32 @@ open class BaseChart @JvmOverloads constructor(
                             }
                         }
                         ChartTypeEnum.AREA -> {
+
+                            if (showPie) {
+
+                                val coords = getArcCoords()
+                                val percents = chartLines.first().percents
+                                for (yIndex in percents.keys) {
+                                    if (!yShouldVisible[yIndex]!!) continue
+
+                                    val paint = piePaints[yIndex]
+                                    val rect = RectF()
+                                    rect.set(centerX - radius, centerY - radius, centerX + radius, centerY + radius)
+
+                                    drawArc(rect, coords[yIndex]!!.startAngle, coords[yIndex]!!.angle, true, paint)
+                                }
+
+                                for (yIndex in percents.keys) {
+                                    if (!yShouldVisible[yIndex]!!) continue
+                                    val name = percents[yIndex]!!.toInt().toString() + "%"
+                                    drawText(name, coords[yIndex]!!.x, coords[yIndex]!!.y, legendPiePaint)
+                                }
+
+                                if (animationInProgress.compareAndSet(false, false)) {
+                                    return@apply
+                                }
+                            }
+
                             for (pp in yPaths.values) {
                                 pp.path.reset()
                             }
@@ -182,7 +239,8 @@ open class BaseChart @JvmOverloads constructor(
                                     tempPath.reset()
                                     tempPath.moveTo(baseWidth, 0f)
                                     tempPath.lineTo(0f, 0f)
-                                    val sorted = chartLines.filter { it.yIndex < yIndex }.sortedByDescending { it.yIndex }
+                                    val sorted =
+                                        chartLines.filter { it.yIndex < yIndex }.sortedByDescending { it.yIndex }
                                     val first = sorted.firstOrNull()
                                     if (first != null) {
                                         val mmm = sorted.filter { it.yIndex == first.yIndex }
@@ -198,14 +256,16 @@ open class BaseChart @JvmOverloads constructor(
 //                                    tempPath.addPath(path)
 //                                    tempPath.close()
 //                                    if (index == 2) {
-                                        val sorted = chartLines.filter { it.yIndex < yIndex }.sortedByDescending { it.yIndex }
-                                        val first = sorted.firstOrNull()
-                                        if (first != null) {
-                                            val mmm = sorted.filter { it.yIndex == first.yIndex }.sortedByDescending { it.xIndex }
-                                            for (chartLine in mmm) {
-                                                path.lineTo(chartLine.x, chartLine.y)
-                                            }
+                                    val sorted =
+                                        chartLines.filter { it.yIndex < yIndex }.sortedByDescending { it.yIndex }
+                                    val first = sorted.firstOrNull()
+                                    if (first != null) {
+                                        val mmm =
+                                            sorted.filter { it.yIndex == first.yIndex }.sortedByDescending { it.xIndex }
+                                        for (chartLine in mmm) {
+                                            path.lineTo(chartLine.x, chartLine.y)
                                         }
+                                    }
 //                                    }
                                     path.close()
                                     drawPath(path, paint)
@@ -340,7 +400,7 @@ open class BaseChart @JvmOverloads constructor(
 //                for (yIndex in mapYAvg.keys) {
 //                    System.out.println("area -> ${chartData.ys[yIndex].name} - ${prc[yIndex]} - ${avg[yIndex]} - ${min[yIndex]} - ${max[yIndex]}")
 //                }
-                sortedArea = mapYAvg.toList().sortedByDescending { it.second }.toMap()
+                //sortedArea = mapYAvg.toList().sortedByDescending { it.second }.toMap()
             }
 
             for (xIndex in startIndex until stopIndex) {
@@ -361,7 +421,7 @@ open class BaseChart @JvmOverloads constructor(
                         if (!yShouldVisible[yIndex]!!) continue
 
                         val value = sortedBar[yIndex]!!
-                        val paint = paints[chartData.ys[yIndex].name]!!
+                        val paint = paints[yIndex]!!
                         val y = baseHeight - (value) * scale
 
                         if (maxValue) {
@@ -412,9 +472,9 @@ open class BaseChart @JvmOverloads constructor(
                 } else if (stackedChartType == ChartTypeEnum.AREA) {
 
                     var yvals = 0.0
-                    for (yIndex in sortedArea.keys) {
+                    for (yIndex in mapYAvg.keys) {
                         if (!yShouldVisible[yIndex]!!) continue
-                        val paint = paints[chartData.ys[yIndex].name]!!
+                        val paint = paints[yIndex]!!
                         var value = mapYValue[yIndex]!!
                         val avg = mapYAvg[yIndex]!!
                         val deviation = (avg * 10 / 100).toLong()
@@ -433,10 +493,13 @@ open class BaseChart @JvmOverloads constructor(
 //                        val y = baseHeight - (value - yMinMaxValues[0]!!.min) * scale
                         yvals += (baseHeight - (baseHeight - (value) * areaYScale[yIndex]!!)) * prc[yIndex]!! / 100
 
-
-                        System.out.println("area ->" + chartData.ys[yIndex].name + " procent " + prc[yIndex] + " height " + baseHeight + " - " + y)
-
-
+                        if (baseHeight == 660f) {
+                            System.out.println(
+                                "area ->" + yIndex + " - " + chartData.ys[yIndex].name +
+                                        " procent= " + prc[yIndex] +
+                                        " height= " + baseHeight + " - yvals= " + yvals + " -  y= " + (baseHeight - yvals.toFloat())
+                            )
+                        }
                         result.add(
                             ChartLineExt(
                                 xIndex,
@@ -466,7 +529,7 @@ open class BaseChart @JvmOverloads constructor(
                     val yValue = chartData.ys[yIndex]
 
                     val x1 = (xDays - minX) * xScale
-                    val chartPaint = paints[chartData.ys[yIndex].name]!!
+                    val chartPaint = paints[yIndex]!!
                     val chartType = yValue.type
 
                     if (yValue.type == ChartTypeEnum.LINE) {
@@ -773,6 +836,123 @@ open class BaseChart @JvmOverloads constructor(
         return animators
     }
 
+    fun showPie() {
+
+        if (animationInProgress.compareAndSet(true, false)) {
+            animatorSet?.cancel()
+            animatorSet = null
+        }
+
+        if (animationInProgress.compareAndSet(false, true)) {
+            showPie = true
+            animatorSet = AnimatorSet()
+            val animators = mutableListOf<Animator>()
+
+            val radiusAnimator = ValueAnimator.ofFloat(baseWidth / 10, baseWidth / 3)
+            radiusAnimator.duration = ANIMATION_REPLACING_DURATION
+            radiusAnimator.addUpdateListener { value ->
+                value.animatedValue?.apply {
+                    radius = this as Float
+                    invalidate()
+                }
+            }
+            animators.add(radiusAnimator)
+
+            for (paint in piePaints.values) {
+                val paintAnimator = ValueAnimator.ofInt(0, 255)
+                paintAnimator.duration = ANIMATION_REPLACING_DURATION_SLOWER
+                paintAnimator.addUpdateListener { value ->
+                    value.animatedValue?.apply {
+                        paint.alpha = this as Int
+                        invalidate()
+                    }
+                }
+                animators.add(paintAnimator)
+            }
+
+            for (paint in paints.values) {
+                val paintAnimator = ValueAnimator.ofInt(255, 0)
+                paintAnimator.duration = ANIMATION_REPLACING_DURATION
+                paintAnimator.addUpdateListener { value ->
+                    value.animatedValue?.apply {
+                        paint.alpha = this as Int
+                        invalidate()
+                    }
+                }
+                animators.add(paintAnimator)
+            }
+
+            val coords = getArcCoords()
+
+            for (chartLine in chartLines) {
+
+                val y1Animator = ValueAnimator.ofFloat(chartLine.y, coords[chartLine.yIndex]!!.y)
+                y1Animator.addUpdateListener { value ->
+                    value.animatedValue?.apply {
+                        chartLine.y = this as Float
+                        invalidate()
+                    }
+                }
+                y1Animator.duration = ANIMATION_REPLACING_DURATION
+                animators.add(y1Animator)
+
+                val x1Animator = ValueAnimator.ofFloat(chartLine.x, coords[chartLine.yIndex]!!.x)
+                x1Animator.addUpdateListener { value ->
+                    value.animatedValue?.apply {
+                        chartLine.x = this as Float
+                        invalidate()
+                    }
+                }
+                x1Animator.duration = ANIMATION_REPLACING_DURATION
+                animators.add(x1Animator)
+            }
+
+            animatorSet?.apply {
+                this.playTogether(animators)
+                this.addListener(object : Animator.AnimatorListener {
+                    override fun onAnimationRepeat(animation: Animator?) {
+                    }
+
+                    override fun onAnimationEnd(animation: Animator?) {
+                        animationInProgress.set(false)
+                        invalidate()
+                    }
+
+                    override fun onAnimationCancel(animation: Animator?) {
+                        animationInProgress.set(false)
+                        invalidate()
+                    }
+
+                    override fun onAnimationStart(animation: Animator?) {
+                    }
+                })
+                this.start()
+            }
+        }
+
+        //invalidate()
+    }
+
+    private fun getArcCoords(): Map<Int, ArcCoord> {
+        var startAngle = 0f
+        val percents = chartLines.first().percents
+        val coords = mutableMapOf<Int, ArcCoord>()
+        for (yIndex in percents.keys) {
+            if (!yShouldVisible[yIndex]!!) continue
+            val angle = (360 * percents[yIndex]!! / 100).toFloat()
+            val angl = startAngle + angle + 90
+
+            val cos = radius / 2 * Math.cos(angl * GRAD_TO_RAD)
+            val sin = radius / 2 * Math.sin(angl * GRAD_TO_RAD)
+            val xtext = (centerX - cos).toFloat()
+            val ytext = (centerY - sin).toFloat()
+
+            coords.put(yIndex, ArcCoord(startAngle, angle, xtext, ytext))
+            startAngle += angle
+        }
+        return coords
+    }
+
     data class ChartLineExt(
         val xIndex: Int,
         val yIndex: Int,
@@ -803,6 +983,13 @@ open class BaseChart @JvmOverloads constructor(
         val yIndex: Int
     )
 
+    data class ArcCoord(
+        val startAngle: Float,
+        val angle: Float,
+        val x: Float,
+        val y: Float
+    )
+
     companion object {
         const val ROWS = 6
         const val TEXT_SIZE_DP = 12
@@ -813,11 +1000,13 @@ open class BaseChart @JvmOverloads constructor(
         const val CIRCLE_CHART_RADIUS = 15f
         const val TEXT_STROKE_WIDTH = 1f
         const val ANIMATION_DURATION: Long = 300
+        const val ANIMATION_REPLACING_DURATION_SLOWER: Long = 2000
         const val ANIMATION_REPLACING_DURATION: Long = 1000
         const val ANIMATION_REPLACING_DURATION_FASTER: Long = 500
         const val ANIMATION_ORDER_ACCELERATION: Long = 100
         const val MINIMAL_DISTANCE = 50
         const val MAGIC = 1.1f
+        private val GRAD_TO_RAD = Math.PI / 180
 
         fun reduction(value: Long): String {
             var reductionValue = value

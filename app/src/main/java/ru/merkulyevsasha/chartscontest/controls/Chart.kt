@@ -281,6 +281,9 @@ open class Chart @JvmOverloads constructor(
 
     // TODO to separate controls
     private fun drawYWithLegend(canvas: Canvas) {
+
+        if (showPie) return
+
         val boundRect = Rect()
         if (chartData.ys.first().type == ChartTypeEnum.AREA) {
             val rowHeight = (baseHeight / 4).toLong()

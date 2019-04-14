@@ -220,5 +220,13 @@ class ChartLayoutView @JvmOverloads constructor(
         return result
     }
 
+    fun showPie() {
+        if (oldChartData.firstChartDataType() != ChartTypeEnum.AREA) {
+            return
+        }
+        chartXLegend.visibility = View.GONE
+        chart.showPie()
+    }
+
 
 }

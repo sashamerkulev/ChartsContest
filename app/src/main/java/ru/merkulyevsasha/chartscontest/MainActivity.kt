@@ -94,7 +94,7 @@ class MainActivity : AppCompatActivity(), IMainView {
             oldChart.setData(chartData[index], object : OnLegendClicked {
                 override fun onLegendClicked(point: ChartLegend.Distance) {
                     if (index == 4) {
-                        pres.onAreaClicked()
+                        oldChart.showPie()
                         return
                     }
                     val calendar = Calendar.getInstance()

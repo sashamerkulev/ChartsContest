@@ -231,26 +231,28 @@ class ChartLegend @JvmOverloads constructor(
                 if (newLegendData == null) return@apply
 
                 // vertical line
-                if (point.type == ChartTypeEnum.LINE) {
+                if (point.type == ChartTypeEnum.LINE || point.type == ChartTypeEnum.AREA) {
                     this.drawLine(point.x, 0f, point.x, baseHeight, paintTopBottomLine)
-                    // draw circles
-                    for (yIndex in 0 until point.ys.size) {
-                        if (!yShouldVisible[yIndex]!!) continue
-                        val yValue = point.ys[yIndex]
+                    if (point.type == ChartTypeEnum.LINE) {
+                        // draw circles
+                        for (yIndex in 0 until point.ys.size) {
+                            if (!yShouldVisible[yIndex]!!) continue
+                            val yValue = point.ys[yIndex]
 
-                        var min: Long
-                        var pointY: Float
-                        if (point.yScaled) {
-                            min = yMinMaxValues[yIndex]!!.min
-                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScales[yIndex]!!
-                        } else {
-                            min = yMinMaxValues[0]!!.min
-                            pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScales[0]!!
+                            var min: Long
+                            var pointY: Float
+                            if (point.yScaled) {
+                                min = yMinMaxValues[yIndex]!!.min
+                                pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScales[yIndex]!!
+                            } else {
+                                min = yMinMaxValues[0]!!.min
+                                pointY = baseHeight - (yValue.yValues[point.xIndex] - min) * yScales[0]!!
+                            }
+
+                            paintCircle.color = yValue.color
+                            this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintFillCircle)
+                            this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintCircle)
                         }
-
-                        paintCircle.color = yValue.color
-                        this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintFillCircle)
-                        this.drawCircle(point.x, pointY, CIRCLE_CHART_RADIUS, paintCircle)
                     }
                 } else if (point.type == ChartTypeEnum.BAR) {
                     drawRect(0f, 0f, point.x, baseHeight, shadowRectPaint)
@@ -359,7 +361,7 @@ class ChartLegend @JvmOverloads constructor(
 
     private fun calculateLegendRectPosition(point: Distance, widthLegendBox: Float): LegendPosition {
         var leftX = 10f
-        if (point.type == ChartTypeEnum.LINE) {
+        if (point.type == ChartTypeEnum.LINE || point.type == ChartTypeEnum.AREA) {
             leftX = point.x - widthLegendBox / 2
             if (leftX + widthLegendBox > baseWidth) {
                 leftX = baseWidth - widthLegendBox - 10f
@@ -482,27 +484,10 @@ class ChartLegend @JvmOverloads constructor(
     }
 
     private fun findMinimalDistancePoint(x: Float, y: Float): Distance? {
-
-        if (chartData.firstChartDataType() == ChartTypeEnum.AREA) {
-            val point = chartLines.firstOrNull() { yShouldVisible[it.yIndex]!! }
-            return if (point == null) null else Distance(
-                0f,
-                0f,
-                point.xDate,
-                point.x,
-                point.xIndex,
-                point.yScaled,
-                point.ys,
-                point.type,
-                point.barSize,
-                point.percents
-            )
-        }
-
         val distances = mutableListOf<Distance>()
         for (chartLine in chartLines.filter { yShouldVisible[it.yIndex]!! }) {
 
-            if (chartLine.type == ChartTypeEnum.LINE) {
+            if (chartLine.type == ChartTypeEnum.LINE || chartLine.type == ChartTypeEnum.AREA) {
                 distances.add(
                     Distance(
                         Math.abs(chartLine.x - x),
@@ -513,7 +498,8 @@ class ChartLegend @JvmOverloads constructor(
                         chartLine.yScaled,
                         chartLine.ys,
                         chartLine.type,
-                        chartLine.barSize
+                        chartLine.barSize,
+                        percents = chartLine.percents
                     )
                 )
             } else if (chartLine.type == ChartTypeEnum.BAR) {
@@ -543,13 +529,12 @@ class ChartLegend @JvmOverloads constructor(
                         chartLine.barSize
                     )
                 )
-            } else if (chartLine.type == ChartTypeEnum.AREA) {
-
             }
         }
         val nearestX = distances.sortedBy { it.distanceX }.filter { it.distanceX < BaseChart.MINIMAL_DISTANCE }
         if (nearestX.isNotEmpty()) {
             val firstNearest = nearestX.first()
+            if (chartData.firstChartDataType() == ChartTypeEnum.AREA) return firstNearest
             if (firstNearest.type == ChartTypeEnum.BAR) return firstNearest
             if (firstNearest.type == ChartTypeEnum.LINE) return nearestX.firstOrNull { it.distanceY < BaseChart.MINIMAL_DISTANCE }
         }
