@@ -472,8 +472,10 @@ open class BaseChart @JvmOverloads constructor(
                         val deviation = (avg * 10 / 100).toLong()
                         if (value + deviation < avg || value - deviation > avg) value = avg.toLong()
 
-//                        yvals += baseHeight  * prc[yIndex]!! / 100
-                        yvals += (baseHeight - (baseHeight - (value) * areaYScale[yIndex]!!)) * prc[yIndex]!! / 100
+                        value = (((value - avg.toLong()) * areaYScale[yIndex]!!)* prc[yIndex]!! / 100).toLong()
+
+                        yvals += baseHeight * prc[yIndex]!! / 100
+//                        yvals += (baseHeight - (baseHeight - (value) * areaYScale[yIndex]!!)) * prc[yIndex]!! / 100
 
 //                        if (baseHeight == 660f) {
 //                            System.out.println(
@@ -491,7 +493,7 @@ open class BaseChart @JvmOverloads constructor(
                                 chartData.yScaled,
                                 value,
                                 x - barSize / 2,
-                                baseHeight - yvals.toFloat(),
+                                baseHeight - yvals.toFloat()+value,
                                 paint,
                                 stackedChartType,
                                 chartData.ys,
